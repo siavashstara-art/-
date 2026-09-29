@@ -1,0 +1,245 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidAcademyStage(stage) {
+      return stage is string && stage.size() <= 32 && (
+        stage == 'REGISTERED' ||
+        stage == 'GENERAL_TRAINING' ||
+        stage == 'GENERAL_EXAM' ||
+        stage == 'CERTIFIED_GENERAL' ||
+        stage == 'SPECIALIZED_TRAINING' ||
+        stage == 'SPECIALIZED_EXAM' ||
+        stage == 'SIMULATED_DEAL' ||
+        stage == 'FIELD_EVALUATION' ||
+        stage == 'CERTIFIED' ||
+        stage == 'REASSESSMENT'
+      );
+    }
+
+    function isValidTier(tier) {
+      return tier is string && tier.size() <= 16 && (
+        tier == 'UNRANKED' ||
+        tier == 'A++' ||
+        tier == 'A+' ||
+        tier == 'A' ||
+        tier == 'B' ||
+        tier == 'C'
+      );
+    }
+
+    function isValidProductId(productId) {
+      return productId is string && productId.size() <= 32 && (
+        productId == 'DECORMATE' ||
+        productId == 'SLABMATE' ||
+        productId == 'SALONMATE' ||
+        productId == 'AUTOBARTER' ||
+        productId == 'TANARA' ||
+        productId == 'TALAYAR' ||
+        productId == 'EVENTMATE'
+      );
+    }
+
+    function isValidProductStatus(status) {
+      return status is string && status.size() <= 32 && (
+        status == 'NOT_STARTED' ||
+        status == 'TRAINING' ||
+        status == 'EXAM_FAILED' ||
+        status == 'EXAM_PASSED' ||
+        status == 'SIMULATION_FAILED' ||
+        status == 'FIELD_EVALUATION' ||
+        status == 'CERTIFIED' ||
+        status == 'SUSPENDED'
+      );
+    }
+
+    function isValidAmbassadorProfile(data) {
+      return data.keys().hasAll([
+        'uid', 'tenantId', 'displayName', 'email', 'academyStage', 'tier',
+        'generalTrainingScore', 'generalExamScore', 'generalSimulationPassed',
+        'generalCertified', 'reassessmentRequired', 'xp', 'completedScenariosCount',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid', 'tenantId', 'displayName', 'email', 'academyStage', 'tier',
+        'generalTrainingScore', 'generalExamScore', 'generalSimulationPassed',
+        'generalCertified', 'reassessmentRequired', 'xp', 'completedScenariosCount',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 && data.uid == request.auth.uid &&
+      data.tenantId is string && data.tenantId.size() >= 1 && data.tenantId.size() <= 64 && data.tenantId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+      data.email is string && data.email.size() >= 3 && data.email.size() <= 150 &&
+      isValidAcademyStage(data.academyStage) &&
+      isValidTier(data.tier) &&
+      data.generalTrainingScore is number && data.generalTrainingScore >= 0 && data.generalTrainingScore <= 100 &&
+      data.generalExamScore is number && data.generalExamScore >= 0 && data.generalExamScore <= 100 &&
+      data.generalSimulationPassed is bool &&
+      data.generalCertified is bool &&
+      data.reassessmentRequired is bool &&
+      data.xp is number && data.xp >= 0 && data.xp <= 1000000 &&
+      data.completedScenariosCount is number && data.completedScenariosCount >= 0 && data.completedScenariosCount <= 10000 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidProductCertification(data, ambassadorId, productId) {
+      return data.keys().hasAll([
+        'ambassadorId', 'tenantId', 'productId', 'status',
+        'trainingCompleted', 'trainingProgress', 'examScore',
+        'simulationPassed', 'fieldEvaluationPassed', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ambassadorId', 'tenantId', 'productId', 'status',
+        'trainingCompleted', 'trainingProgress', 'examScore',
+        'simulationPassed', 'fieldEvaluationPassed', 'updatedAt'
+      ]) &&
+      data.ambassadorId is string && data.ambassadorId.size() >= 1 && data.ambassadorId.size() <= 128 &&
+      data.ambassadorId == ambassadorId && data.ambassadorId == request.auth.uid &&
+      data.tenantId is string && data.tenantId.size() >= 1 && data.tenantId.size() <= 64 && data.tenantId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      isValidProductId(data.productId) && data.productId == productId &&
+      isValidProductStatus(data.status) &&
+      data.trainingCompleted is bool &&
+      data.trainingProgress is number && data.trainingProgress >= 0 && data.trainingProgress <= 100 &&
+      data.examScore is number && data.examScore >= 0 && data.examScore <= 100 &&
+      data.simulationPassed is bool &&
+      data.fieldEvaluationPassed is bool &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidSimulationAttempt(data, ambassadorId) {
+      return data.keys().hasAll([
+        'ambassadorId', 'tenantId', 'scenarioId', 'productId',
+        'finalTrustScore', 'mistakesMade', 'passed', 'createdAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ambassadorId', 'tenantId', 'scenarioId', 'productId',
+        'finalTrustScore', 'mistakesMade', 'passed', 'createdAt'
+      ]) &&
+      data.ambassadorId is string && data.ambassadorId.size() >= 1 && data.ambassadorId.size() <= 128 &&
+      data.ambassadorId == ambassadorId && data.ambassadorId == request.auth.uid &&
+      data.tenantId is string && data.tenantId.size() >= 1 && data.tenantId.size() <= 64 && data.tenantId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.scenarioId is string && data.scenarioId.size() >= 1 && data.scenarioId.size() <= 64 && data.scenarioId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.productId is string && data.productId.size() <= 32 && (
+        data.productId == 'GENERAL' || isValidProductId(data.productId)
+      ) &&
+      data.finalTrustScore is number && data.finalTrustScore >= 0 && data.finalTrustScore <= 100 &&
+      data.mistakesMade is number && data.mistakesMade >= 0 && data.mistakesMade <= 1000 &&
+      data.passed is bool &&
+      data.createdAt is timestamp;
+    }
+
+    // Connection test endpoint (deny writes, allow signed-in read check)
+    match /test/connection {
+      allow get: if isSignedIn();
+      allow list, write: if false;
+    }
+
+    // Ambassador Profile Collection
+    match /ambassadors/{ambassadorId} {
+      allow get: if isOwner(ambassadorId) && isValidId(ambassadorId);
+      allow list: if isVerifiedUser() && resource.data.uid == request.auth.uid;
+
+      allow create: if isOwner(ambassadorId) &&
+        isValidId(ambassadorId) &&
+        isValidAmbassadorProfile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isOwner(ambassadorId) &&
+        isValidId(ambassadorId) &&
+        isValidAmbassadorProfile(incoming()) &&
+        incoming().uid == existing().uid &&
+        incoming().tenantId == existing().tenantId &&
+        incoming().email == existing().email &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'academyStage', 'tier', 'generalTrainingScore',
+          'generalExamScore', 'generalSimulationPassed', 'generalCertified',
+          'reassessmentRequired', 'xp', 'completedScenariosCount', 'updatedAt'
+        ]);
+
+      allow delete: if false;
+
+      // Per-Product Independent Certifications Subcollection
+      match /productCertifications/{productId} {
+        allow get: if isOwner(ambassadorId) && isValidId(ambassadorId) && isValidProductId(productId) &&
+          exists(/databases/$(database)/documents/ambassadors/$(ambassadorId));
+
+        allow list: if isOwner(ambassadorId) &&
+          resource.data.ambassadorId == request.auth.uid;
+
+        allow create: if isOwner(ambassadorId) &&
+          isValidId(ambassadorId) &&
+          isValidProductId(productId) &&
+          isValidProductCertification(incoming(), ambassadorId, productId) &&
+          incoming().updatedAt == request.time &&
+          get(/databases/$(database)/documents/ambassadors/$(ambassadorId)).data.tenantId == incoming().tenantId;
+
+        allow update: if isOwner(ambassadorId) &&
+          isValidId(ambassadorId) &&
+          isValidProductId(productId) &&
+          isValidProductCertification(incoming(), ambassadorId, productId) &&
+          incoming().ambassadorId == existing().ambassadorId &&
+          incoming().tenantId == existing().tenantId &&
+          incoming().productId == existing().productId &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'status', 'trainingCompleted', 'trainingProgress',
+            'examScore', 'simulationPassed', 'fieldEvaluationPassed', 'updatedAt'
+          ]) &&
+          exists(/databases/$(database)/documents/ambassadors/$(ambassadorId));
+
+        allow delete: if false;
+      }
+
+      // Simulation Attempts Subcollection
+      match /simulationAttempts/{attemptId} {
+        allow get: if isOwner(ambassadorId) && isValidId(ambassadorId) && isValidId(attemptId) &&
+          exists(/databases/$(database)/documents/ambassadors/$(ambassadorId));
+
+        allow list: if isOwner(ambassadorId) &&
+          resource.data.ambassadorId == request.auth.uid;
+
+        allow create: if isOwner(ambassadorId) &&
+          isValidId(ambassadorId) &&
+          isValidId(attemptId) &&
+          isValidSimulationAttempt(incoming(), ambassadorId) &&
+          incoming().createdAt == request.time &&
+          get(/databases/$(database)/documents/ambassadors/$(ambassadorId)).data.tenantId == incoming().tenantId;
+
+        allow update, delete: if false;
+      }
+    }
+  }
+}

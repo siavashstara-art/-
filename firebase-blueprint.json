@@ -1,0 +1,277 @@
+{
+  "entities": {
+    "AmbassadorProfile": {
+      "title": "AmbassadorProfile",
+      "description": "Represents an authenticated sales ambassador in the AbleCity / Afarinesh ecosystem adhering to Domain Core v4.0.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Verified Firebase Authentication UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Verified Tenant ID derived strictly from authenticated identity",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Ambassador full name",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified email address",
+          "minLength": 3,
+          "maxLength": 150
+        },
+        "academyStage": {
+          "type": "string",
+          "description": "Current stage in the ForoshYar Academy",
+          "enum": [
+            "REGISTERED",
+            "GENERAL_TRAINING",
+            "GENERAL_EXAM",
+            "CERTIFIED_GENERAL",
+            "SPECIALIZED_TRAINING",
+            "SPECIALIZED_EXAM",
+            "SIMULATED_DEAL",
+            "FIELD_EVALUATION",
+            "CERTIFIED",
+            "REASSESSMENT"
+          ]
+        },
+        "tier": {
+          "type": "string",
+          "description": "General Sales Tier (separate from product certification)",
+          "enum": ["UNRANKED", "A++", "A+", "A", "B", "C"]
+        },
+        "generalTrainingScore": {
+          "type": "number",
+          "description": "Progress in general training modules (0-100)"
+        },
+        "generalExamScore": {
+          "type": "number",
+          "description": "Score in general sales certification exam (0-100)"
+        },
+        "generalSimulationPassed": {
+          "type": "boolean",
+          "description": "Whether general core sales simulation was passed"
+        },
+        "generalCertified": {
+          "type": "boolean",
+          "description": "Whether general sales certification is active and valid"
+        },
+        "reassessmentRequired": {
+          "type": "boolean",
+          "description": "True if ambassador scored B or C and requires reassessment before field sales"
+        },
+        "xp": {
+          "type": "number",
+          "description": "Practice experience points (informational only; never replaces certification)"
+        },
+        "completedScenariosCount": {
+          "type": "number",
+          "description": "Count of completed interactive sales scenarios"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": [
+        "uid",
+        "tenantId",
+        "displayName",
+        "email",
+        "academyStage",
+        "tier",
+        "generalTrainingScore",
+        "generalExamScore",
+        "generalSimulationPassed",
+        "generalCertified",
+        "reassessmentRequired",
+        "xp",
+        "completedScenariosCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProductCertification": {
+      "title": "ProductCertification",
+      "description": "Independent per-product certification lifecycle for an Ambassador (DECORMATE, SLABMATE, SALONMATE, AUTOBARTER, TANARA, TALAYAR, EVENTMATE).",
+      "type": "object",
+      "properties": {
+        "ambassadorId": {
+          "type": "string",
+          "description": "Owner Ambassador UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Tenant ID bound to the ambassador",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Ecosystem Product Identifier",
+          "enum": [
+            "DECORMATE",
+            "SLABMATE",
+            "SALONMATE",
+            "AUTOBARTER",
+            "TANARA",
+            "TALAYAR",
+            "EVENTMATE"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "Independent lifecycle state of this product certification",
+          "enum": [
+            "NOT_STARTED",
+            "TRAINING",
+            "EXAM_FAILED",
+            "EXAM_PASSED",
+            "SIMULATION_FAILED",
+            "FIELD_EVALUATION",
+            "CERTIFIED",
+            "SUSPENDED"
+          ]
+        },
+        "trainingCompleted": {
+          "type": "boolean",
+          "description": "Whether specialized product training is completed"
+        },
+        "trainingProgress": {
+          "type": "number",
+          "description": "Training completion percentage (0-100)"
+        },
+        "examScore": {
+          "type": "number",
+          "description": "Product specialized exam score (0-100), requires >= 75"
+        },
+        "simulationPassed": {
+          "type": "boolean",
+          "description": "Whether product interactive sales simulation was passed"
+        },
+        "fieldEvaluationPassed": {
+          "type": "boolean",
+          "description": "Whether practical field evaluation was passed"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": [
+        "ambassadorId",
+        "tenantId",
+        "productId",
+        "status",
+        "trainingCompleted",
+        "trainingProgress",
+        "examScore",
+        "simulationPassed",
+        "fieldEvaluationPassed",
+        "updatedAt"
+      ]
+    },
+    "SimulationAttempt": {
+      "title": "SimulationAttempt",
+      "description": "Record of an interactive sales simulation run (Observe, Listen, Choose, Speak, Feedback, Retry).",
+      "type": "object",
+      "properties": {
+        "ambassadorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "tenantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "scenarioId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "productId": {
+          "type": "string",
+          "enum": [
+            "GENERAL",
+            "DECORMATE",
+            "SLABMATE",
+            "SALONMATE",
+            "AUTOBARTER",
+            "TANARA",
+            "TALAYAR",
+            "EVENTMATE"
+          ]
+        },
+        "finalTrustScore": {
+          "type": "number",
+          "description": "Final client trust score (0-100)"
+        },
+        "mistakesMade": {
+          "type": "number",
+          "description": "Number of mistakes encountered and retried during scenario"
+        },
+        "passed": {
+          "type": "boolean",
+          "description": "Whether the simulation met the passing threshold"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ambassadorId",
+        "tenantId",
+        "scenarioId",
+        "productId",
+        "finalTrustScore",
+        "mistakesMade",
+        "passed",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/ambassadors/{ambassadorId}": {
+      "schema": { "$ref": "#/entities/AmbassadorProfile" },
+      "description": "Stores the core Ambassador profile, general certification state, and tenant binding."
+    },
+    "/ambassadors/{ambassadorId}/productCertifications/{productId}": {
+      "schema": { "$ref": "#/entities/ProductCertification" },
+      "description": "Stores independent per-product certification state for each of the 7 ecosystem products."
+    },
+    "/ambassadors/{ambassadorId}/simulationAttempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/SimulationAttempt" },
+      "description": "Stores historical attempts of sales simulations for skill tracking."
+    }
+  }
+}

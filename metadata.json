@@ -1,0 +1,6 @@
+{
+  "name": "آموزش بازاریابی (فروشیار) — ForoshYar",
+  "description": "محیط شبیه‌سازی فروش، آموزش تعاملی، ارزیابی صلاحیت چندمحصولی و صدور مجوز فروش میدانی در اکوسیستم آفرینش و شهر نوآوران AbleCity (Domain Core v4.0)",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
