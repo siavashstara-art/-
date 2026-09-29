@@ -1,7 +1,8 @@
 {
-  "name": "react-example",
+  "name": "amoozesh-bazaryabi-asnaf-foroshyar",
+  "description": "آموزش بازاریابی اصناف — آموزش بازاریابی (فروشیار) | اکوسیستم آفرینش و شهر نوآوران AbleCity",
   "private": true,
-  "version": "0.0.0",
+  "version": "4.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

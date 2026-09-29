@@ -174,12 +174,32 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [verifiedServerSession, setVerifiedServerSession] = useState<VerifiedServerSession | null>(
     null
   );
-  const [profile, setProfile] = useState<AmbassadorDomainProfile>(() =>
-    buildInitialSandboxProfile()
-  );
+  const [profile, setProfile] = useState<AmbassadorDomainProfile>(() => {
+    try {
+      const saved = localStorage.getItem('foroshyar_offline_profile_v4');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.productCertifications && parsed.productCertifications.DECORMATE) {
+          return parsed as AmbassadorDomainProfile;
+        }
+      }
+    } catch {
+      // Fallback to default sandbox profile
+    }
+    return buildInitialSandboxProfile();
+  });
   const [commissionPolicy, setCommissionPolicy] = useState<CommissionPolicy>(
     DEFAULT_COMMISSION_POLICY
   );
+
+  // Offline-First synchronization for practice, training, and simulations
+  useEffect(() => {
+    try {
+      localStorage.setItem('foroshyar_offline_profile_v4', JSON.stringify(profile));
+    } catch {
+      // Ignore storage quota errors
+    }
+  }, [profile]);
 
   // Sync authenticated user with backend JWT verification and Firestore
   useEffect(() => {

@@ -1,0 +1,95 @@
+name: ForoshYar — Domain Core v4.0 Audit & Signed Android (APK + AAB) Release
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit-build-and-sign-android:
+    name: Audit Domain Core v4.0 & Build Signed APK / AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 3. Install Dependencies
+        run: npm install
+
+      - name: 4. Run Domain Core v4.0 + Hardening Patch Unit & Security Suite
+        run: npx tsx src/domain/core.test.ts
+
+      - name: 5. TypeScript & Build Verification (Offline-First Web Bundle)
+        env:
+          # API Key is never embedded in client bundle; kept strictly on server/runtime
+          NODE_ENV: production
+        run: |
+          npm run lint
+          npm run build
+
+      - name: 6. Setup Java JDK 21 for Android Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: 7. Initialize Capacitor Android & Generate Signed Gradle Config (If Android Platform Enabled)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ ! -d "android" ]; then
+            npm install @capacitor/core @capacitor/cli @capacitor/android --no-save
+            npx cap init "ForoshYar" "ir.ablecity.foroshyar" --web-dir dist
+            npx cap add android
+          else
+            npx cap sync android
+          fi
+
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release-key.jks
+            cat << 'EOF' >> android/app/build.gradle
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("release-key.jks")
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                      minifyEnabled false
+                  }
+              }
+          }
+          EOF
+            cd android && ./gradlew assembleRelease bundleRelease --no-daemon
+          else
+            cd android && ./gradlew assembleDebug bundleDebug --no-daemon
+          fi
+
+      - name: 8. Publish Signed APK & AAB to GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            android/app/build/outputs/apk/**/*.apk
+            android/app/build/outputs/bundle/**/*.aab
