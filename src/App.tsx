@@ -10,6 +10,7 @@ import { AcademyAndGeneralExam } from './components/AcademyAndGeneralExam';
 import { ProductCertificationTracks } from './components/ProductCertificationTracks';
 import { AuthorizationAndCommissionLab } from './components/AuthorizationAndCommissionLab';
 import { CoachDrawer } from './components/CoachDrawer';
+import { ObjectionReflexArena } from './components/ObjectionReflexArena';
 import {
   ECOSYSTEM_PRODUCTS,
   HERO_IMAGE_PATH,
@@ -600,6 +601,9 @@ const MainShell: React.FC = () => {
                 </div>
               </div>
             </section>
+
+            {/* GAMIFIED RAPID OBJECTION REFLEX ARENA & OFFLINE-FIRST GUILD LEADERBOARD */}
+            <ObjectionReflexArena />
           </div>
         )}
 
