@@ -3,8 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AmbassadorProvider, useAmbassador } from './context/AmbassadorContext';
+import {
+  AccessibilityProvider,
+  useAccessibility,
+} from './context/AccessibilityAndLocaleContext';
+import { AccessibilityToolbar } from './components/AccessibilityToolbar';
 import { SimulatedSalesWorld } from './components/SimulatedSalesWorld';
 import { AcademyAndGeneralExam } from './components/AcademyAndGeneralExam';
 import { ProductCertificationTracks } from './components/ProductCertificationTracks';
@@ -54,8 +59,24 @@ const MainShell: React.FC = () => {
     signInWithGoogle,
     signOutUser,
   } = useAmbassador();
+  const { t, adhdFocusMode } = useAccessibility();
 
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('HOME');
+
+  // Motor Accessibility: Keyboard shortcuts 1 to 5 to switch tabs without mouse
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === '1') setActiveScreen('HOME');
+      else if (e.key === '2') setActiveScreen('SIMULATION');
+      else if (e.key === '3') setActiveScreen('ACADEMY');
+      else if (e.key === '4') setActiveScreen('PRODUCTS');
+      else if (e.key === '5') setActiveScreen('AUTHORIZATION');
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
   const [coachOpen, setCoachOpen] = useState(false);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | undefined>(
     undefined
@@ -104,6 +125,9 @@ const MainShell: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A]">
+      {/* UNIVERSAL ACCESSIBILITY (MOTOR, VISUAL, HEARING, ADHD) & 7 MOTHER-TONGUES BAR */}
+      <AccessibilityToolbar currentScreenSummaryFa={`${t.brandTitle} — ${t.heroGreeting} ${t.heroSubtitle}`} />
+
       {/* STRICT 3-ZONE TOP BAR CONTRACT */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
         {/* Zone 1: Single Text Element Brand Wordmark */}
@@ -111,7 +135,7 @@ const MainShell: React.FC = () => {
           onClick={() => setActiveScreen('HOME')}
           className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 whitespace-nowrap"
         >
-          آموزش بازاریابی (فروشیار)
+          {t.brandTitle}
         </button>
 
         {/* Zone 2: 5 Clean Text Navigation Links */}
@@ -124,7 +148,7 @@ const MainShell: React.FC = () => {
                 : ''
             }`}
           >
-            خانه و ماموریت
+            {t.navHome}
           </button>
           <button
             onClick={() => setActiveScreen('SIMULATION')}
@@ -134,7 +158,7 @@ const MainShell: React.FC = () => {
                 : ''
             }`}
           >
-            سناریوهای واقعی
+            {t.navSimulation}
           </button>
           <button
             onClick={() => setActiveScreen('ACADEMY')}
@@ -144,7 +168,7 @@ const MainShell: React.FC = () => {
                 : ''
             }`}
           >
-            آکادمی و آزمون
+            {t.navAcademy}
           </button>
           <button
             onClick={() => setActiveScreen('PRODUCTS')}
@@ -154,7 +178,7 @@ const MainShell: React.FC = () => {
                 : ''
             }`}
           >
-            مسیرهای محصول
+            {t.navProducts}
           </button>
           <button
             onClick={() => setActiveScreen('AUTHORIZATION')}
@@ -164,7 +188,7 @@ const MainShell: React.FC = () => {
                 : ''
             }`}
           >
-            سطح من و مجوز فروش
+            {t.navAuthorization}
           </button>
         </nav>
 
@@ -175,7 +199,7 @@ const MainShell: React.FC = () => {
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-sky-900 bg-sky-50 hover:bg-sky-100 rounded-xl transition-colors whitespace-nowrap"
           >
             <MessageSquareHeart className="w-4 h-4 text-sky-700" />
-            <span>مربی فروشیار</span>
+            <span>{t.coachButton}</span>
           </button>
 
           {firebaseUser ? (
@@ -255,11 +279,11 @@ const MainShell: React.FC = () => {
                 </div>
 
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight headline-balance">
-                  «سلام! آماده‌ای امروز یک فروشنده بهتر بشی؟»
+                  {t.heroGreeting}
                 </h1>
 
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl">
-                  به دنیای شبیه‌سازی فروش <strong>فروشیار (ForoshYar)</strong> خوش آمدی. اینجا یک کتابخانه خشک از جزوه‌ها نیست؛ اینجا میدان تمرین واقعی توست تا ببینی، بشنوی، انتخاب کنی، صحبت کنی، بدون ترس اشتباه کنی، از مربی بازخورد بگیری و با کسب گواهینامه‌های تخصصی، مجوز رسمی فروش ۷ محصول اکوسیستم آفرینش را دریافت کنی.
+                  {t.heroSubtitle}
                 </p>
 
                 {/* Primary Focal CTA + Secondary Action */}
@@ -269,14 +293,14 @@ const MainShell: React.FC = () => {
                     className="flex items-center gap-2 px-6 py-3.5 bg-sky-700 hover:bg-sky-800 text-white text-sm font-bold rounded-xl transition-colors whitespace-nowrap shadow-xs"
                   >
                     <Play className="w-4 h-4 fill-current" />
-                    <span>ورود به میدان شبیه‌سازی فروش (ماموریت امروز)</span>
+                    <span>{t.ctaEnterSimulation}</span>
                   </button>
 
                   <button
                     onClick={() => setActiveScreen('PRODUCTS')}
                     className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-semibold rounded-xl transition-colors whitespace-nowrap"
                   >
-                    مسیرهای گواهینامه ۷ محصول ({certifiedProductsCount}/۷ فعال)
+                    {t.ctaProductTracks} ({certifiedProductsCount}/۷ فعال)
                   </button>
                 </div>
 
@@ -673,8 +697,10 @@ const MainShell: React.FC = () => {
 
 export default function App() {
   return (
-    <AmbassadorProvider>
-      <MainShell />
-    </AmbassadorProvider>
+    <AccessibilityProvider>
+      <AmbassadorProvider>
+        <MainShell />
+      </AmbassadorProvider>
+    </AccessibilityProvider>
   );
 }

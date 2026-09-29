@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAmbassador } from '../context/AmbassadorContext';
-import { ECOSYSTEM_PRODUCTS } from '../data/ecosystemData';
+import { ECOSYSTEM_PRODUCTS, ProductCatalogItem } from '../data/ecosystemData';
 import {
   ALL_PRODUCT_IDS,
   ProductCertificationStatus,
@@ -15,7 +15,9 @@ import {
   BookOpen,
   ClipboardCheck,
   Award,
+  Code2,
 } from 'lucide-react';
+import { TavanaGuildPlaybook } from './TavanaGuildPlaybook';
 
 interface ProductCertificationTracksProps {
   onLaunchProductSimulation: (productId: ProductId) => void;
@@ -77,8 +79,96 @@ export const ProductCertificationTracks: React.FC<ProductCertificationTracksProp
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [quizResultScore, setQuizResultScore] = useState<number | null>(null);
 
-  const focusedProduct = ECOSYSTEM_PRODUCTS[focusedProductId];
+  // Live Ecosystem Pack Importer State (Offline-First custom packs from sibling apps)
+  const [customCatalogPacks, setCustomCatalogPacks] = useState<
+    Partial<Record<ProductId, ProductCatalogItem>>
+  >(() => {
+    try {
+      const saved = localStorage.getItem('foroshyar_custom_product_packs_v4');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return {};
+  });
+  const [showScriptImporter, setShowScriptImporter] = useState(false);
+  const [scriptInput, setScriptInput] = useState('');
+  const [importFeedback, setImportFeedback] = useState<{
+    ok: boolean;
+    messageFa: string;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'foroshyar_custom_product_packs_v4',
+        JSON.stringify(customCatalogPacks)
+      );
+    } catch {
+      // ignore
+    }
+  }, [customCatalogPacks]);
+
+  const mergedProducts: Record<ProductId, ProductCatalogItem> = {
+    ...ECOSYSTEM_PRODUCTS,
+    ...customCatalogPacks,
+  } as Record<ProductId, ProductCatalogItem>;
+
+  const focusedProduct = mergedProducts[focusedProductId];
   const focusedCert = profile.productCertifications[focusedProductId];
+
+  const handleImportEcosystemScript = () => {
+    setImportFeedback(null);
+    const raw = scriptInput.trim();
+    if (!raw) return;
+
+    try {
+      // Strip optional TypeScript wrapper `export const PRODUCT_TRAINING_PACK =` and trailing semicolon
+      const cleaned = raw
+        .replace(/^[\s\S]*?export\s+const\s+PRODUCT_TRAINING_PACK\s*=\s*/, '')
+        .replace(/;\s*$/, '')
+        .trim();
+
+      // Safe evaluation for JS/TS object literal or JSON
+      const parsed = new Function(`"use strict"; return (${cleaned});`)();
+      const item = parsed?.catalogItem || parsed;
+
+      if (!item || !item.id || !ALL_PRODUCT_IDS.includes(item.id)) {
+        setImportFeedback({
+          ok: false,
+          messageFa:
+            'شناسه محصول (catalogItem.id) معتبر نیست. باید یکی از DECORMATE, SLABMATE, SALONMATE, AUTOBARTER, TANARA, TALAYAR, EVENTMATE باشد.',
+        });
+        return;
+      }
+
+      const pid = item.id as ProductId;
+      const mergedItem: ProductCatalogItem = {
+        ...ECOSYSTEM_PRODUCTS[pid],
+        ...item,
+        id: pid,
+      };
+
+      setCustomCatalogPacks((prev) => ({
+        ...prev,
+        [pid]: mergedItem,
+      }));
+      setFocusedProductId(pid);
+      setImportFeedback({
+        ok: true,
+        messageFa: `اسکریپت آموزشی و آزمون تخصصی محصول «${mergedItem.nameFa} (${pid})» با موفقیت در موتور فروشیار ثبت و فعال شد!`,
+      });
+      setScriptInput('');
+    } catch (err) {
+      setImportFeedback({
+        ok: false,
+        messageFa:
+          err instanceof Error
+            ? `خطا در خواندن ساختار اسکریپت: ${err.message}`
+            : 'ساختار کد واردشده معتبر نیست.',
+      });
+    }
+  };
 
   const focusedAuthBoundary = authorizeFieldSales({
     ambassador: profile,
@@ -198,6 +288,13 @@ export const ProductCertificationTracks: React.FC<ProductCertificationTracksProp
           );
         })}
       </div>
+
+      {/* Tavana 7-Guild Field Sales Playbook & 10-Second Buyer View Lock Studio */}
+      <TavanaGuildPlaybook
+        selectedProductId={focusedProductId}
+        onSelectProduct={(pid) => handleSelectProduct(pid)}
+        onLaunchSimulation={(pid) => onLaunchProductSimulation(pid)}
+      />
 
       {/* Detailed Interactive Certification Studio for Focused Product */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">

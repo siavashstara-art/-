@@ -42,3 +42,46 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* AbleCity / Tavana Universal Accessibility Modes */
+html.a11y-font-large {
+  font-size: 112%;
+}
+
+html.a11y-font-xlarge {
+  font-size: 124%;
+}
+
+/* Motor Impairment: Large Touch Targets & Clear Focus Rings */
+html.a11y-motor-large button,
+html.a11y-motor-large select,
+html.a11y-motor-large input[type="text"],
+html.a11y-motor-large input[type="range"] {
+  min-height: 48px;
+  outline-offset: 3px;
+}
+
+html.a11y-motor-large button:focus-visible {
+  outline: 3px solid #0284c7 !important;
+}
+
+/* Visual Impairment: High-Contrast AAA Mode */
+html.a11y-high-contrast body,
+html.a11y-high-contrast main {
+  background-color: #000000 !important;
+  color: #fef08a !important;
+}
+
+html.a11y-high-contrast section,
+html.a11y-high-contrast header,
+html.a11y-high-contrast footer {
+  border-color: #facc15 !important;
+}
+
+/* ADHD Zen Focus Mode: Eliminate Visual Noise & Motion */
+html.a11y-adhd-focus *,
+html.a11y-adhd-focus ::before,
+html.a11y-adhd-focus ::after {
+  animation: none !important;
+  transition-duration: 0.05s !important;
+}
