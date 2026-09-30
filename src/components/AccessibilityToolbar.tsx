@@ -176,7 +176,7 @@ export const AccessibilityToolbar: React.FC<AccessibilityToolbarProps> = ({
       {/* Language Policy & Live Visual Caption Strip */}
       <div className="max-w-[1360px] mx-auto mt-2 pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
         <span className="text-sky-300 font-semibold">
-          📌 قانون آموزشی فروشیار: شما می‌توانید تمام آموزش‌ها و ویدیوهای انیمیشنی را به ۱۰ زبان و گویش مادری شهر و دیار خودتان (فارسی، لُری، مازندرانی، گیلکی، تورکی، کوردی، عربی، بلوچی، پشتو و English) ببینید و بشنوید؛ اما <strong className="text-amber-300 underline">آزمون‌های رسمی گواهینامه فقط به زبان فارسی</strong> برگزار می‌شوند.
+          📌 قانون آموزشی فروشیار: شما می‌توانید تمام آموزش‌ها و ویدیوهای انیمیشنی را به ۱۱ زبان و گویش مادری شهر و دیار خودتان (فارسی، لُری، مازندرانی، گیلکی، تورکی، کوردی، عربی، بلوچی، پشتو، ارمنی Հայերեն و English) ببینید و بشنوید؛ اما <strong className="text-amber-300 underline">آزمون‌های رسمی گواهینامه فقط به زبان فارسی</strong> برگزار می‌شوند.
         </span>
         {motorLargeTargets && (
           <span className="text-emerald-300 font-mono-tabular">

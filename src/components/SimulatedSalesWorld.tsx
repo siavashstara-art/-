@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   SIMULATION_SCENARIOS,
   SalesScenario,
   COACH_AVATAR_PATH,
+  ECOSYSTEM_PRODUCTS,
 } from '../data/ecosystemData';
 import { useAmbassador } from '../context/AmbassadorContext';
 import {
@@ -17,7 +18,109 @@ import {
   Ear,
   MessageSquare,
   Send,
+  Play,
+  Pause,
+  Trash2,
+  Download,
+  Headphones,
 } from 'lucide-react';
+
+export interface LocalAudioPitchRecording {
+  id: string;
+  scenarioId: string;
+  scenarioTitleFa: string;
+  stepNumber: number;
+  createdAtIso: string;
+  durationSec: number;
+  mimeType: string;
+  blob: Blob;
+  blobUrl: string;
+  transcriptFa: string;
+  selfCritiqueNotes: {
+    calmAndRespectfulTone: boolean;
+    mentionedCoreValue: boolean;
+    avoidedNegativeWords: boolean;
+    confidentPacing: boolean;
+    selfRating: number; // 1 to 5
+  };
+}
+
+const IDB_NAME = 'foroshyar_audio_pitch_blobs_v1';
+const IDB_STORE = 'pitch_recordings';
+
+function openRecordingsDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !('indexedDB' in window)) {
+      reject(new Error('IndexedDB not supported'));
+      return;
+    }
+    const req = window.indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveRecordingBlobToIdb(rec: LocalAudioPitchRecording): Promise<void> {
+  try {
+    const db = await openRecordingsDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      const store = tx.objectStore(IDB_STORE);
+      const { blobUrl: _, ...storable } = rec;
+      store.put(storable);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    // Fallback to in-memory session storage if IndexedDB is restricted
+  }
+}
+
+async function loadRecordingBlobsFromIdb(): Promise<LocalAudioPitchRecording[]> {
+  try {
+    const db = await openRecordingsDb();
+    return await new Promise<LocalAudioPitchRecording[]>((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const store = tx.objectStore(IDB_STORE);
+      const req = store.getAll();
+      req.onsuccess = () => {
+        const rawList = (req.result || []) as Omit<LocalAudioPitchRecording, 'blobUrl'>[];
+        const hydrated: LocalAudioPitchRecording[] = rawList
+          .filter((item) => item && item.blob instanceof Blob)
+          .map((item) => ({
+            ...item,
+            blobUrl: URL.createObjectURL(item.blob),
+          }))
+          .sort((a, b) => (a.createdAtIso < b.createdAtIso ? 1 : -1));
+        resolve(hydrated);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch {
+    return [];
+  }
+}
+
+async function deleteRecordingBlobFromIdb(id: string): Promise<void> {
+  try {
+    const db = await openRecordingsDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      const store = tx.objectStore(IDB_STORE);
+      store.delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch {
+    // ignore
+  }
+}
 
 interface SimulatedSalesWorldProps {
   initialScenarioId?: string;
@@ -76,6 +179,349 @@ export const SimulatedSalesWorld: React.FC<SimulatedSalesWorldProps> = ({
   const recognitionRef = useRef<any>(null);
   const [imgError, setImgError] = useState(false);
   const [coachImgError, setCoachImgError] = useState(false);
+
+  // MediaRecorder API ('Record Response') & Local Audio Blob Replay state
+  const [isRecordingAudio, setIsRecordingAudio] = useState<boolean>(false);
+  const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
+  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const [recorderStatusMsg, setRecorderStatusMsg] = useState<string>('');
+  const [recordings, setRecordings] = useState<LocalAudioPitchRecording[]>([]);
+  const [playingRecordingId, setPlayingRecordingId] = useState<string | null>(null);
+  const [playbackRate, setPlaybackRate] = useState<number>(1);
+  const [playbackProgress, setPlaybackProgress] = useState<Record<string, number>>({});
+  const [showAllScenarioRecordings, setShowAllScenarioRecordings] = useState<boolean>(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserAnimRef = useRef<number | null>(null);
+  const recordingStartMsRef = useRef<number>(0);
+  const audioPlayerRefs = useRef<Record<string, HTMLAudioElement | null>>({});
+
+  // Hydrate persisted audio blobs from IndexedDB on mount
+  useEffect(() => {
+    let mounted = true;
+    loadRecordingBlobsFromIdb().then((loaded) => {
+      if (mounted && loaded.length > 0) {
+        setRecordings(loaded);
+      }
+    });
+    return () => {
+      mounted = false;
+      if (recordingTimerRef.current) window.clearInterval(recordingTimerRef.current);
+      if (analyserAnimRef.current) window.cancelAnimationFrame(analyserAnimRef.current);
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(() => {});
+      }
+    };
+  }, []);
+
+  const stopMediaStreamAndTimers = () => {
+    if (recordingTimerRef.current) {
+      window.clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    if (analyserAnimRef.current) {
+      window.cancelAnimationFrame(analyserAnimRef.current);
+      analyserAnimRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    setAudioLevel(0);
+  };
+
+  const getSupportedAudioMimeType = (): string => {
+    if (typeof MediaRecorder === 'undefined') return 'audio/webm';
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/mp4',
+    ];
+    for (const mime of candidates) {
+      if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported(mime)) {
+        return mime;
+      }
+    }
+    return '';
+  };
+
+  const handleStartMediaRecording = async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setRecorderStatusMsg('مرورگر شما از رابط ضبط صدا (MediaDevices / MediaRecorder) پشتیبانی نمی‌کند.');
+      return;
+    }
+    if (typeof MediaRecorder === 'undefined') {
+      setRecorderStatusMsg('ماژول MediaRecorder در این مرورگر فعال نیست.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      try {
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const audioCtx = new AudioCtx();
+          audioContextRef.current = audioCtx;
+          const source = audioCtx.createMediaStreamSource(stream);
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          source.connect(analyser);
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+          const updateMeter = () => {
+            if (!analyser) return;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+              sum += dataArray[i];
+            }
+            const avg = sum / dataArray.length;
+            const normalized = Math.min(100, Math.round((avg / 128) * 100));
+            setAudioLevel(normalized);
+            analyserAnimRef.current = window.requestAnimationFrame(updateMeter);
+          };
+          analyserAnimRef.current = window.requestAnimationFrame(updateMeter);
+        }
+      } catch {
+        // Ignore visualizer error
+      }
+
+      const preferredMime = getSupportedAudioMimeType();
+      const recorder = preferredMime
+        ? new MediaRecorder(stream, { mimeType: preferredMime })
+        : new MediaRecorder(stream);
+
+      const actualMime = recorder.mimeType || preferredMime || 'audio/webm';
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const elapsedSec = Math.max(
+          1,
+          Math.round((Date.now() - recordingStartMsRef.current) / 1000)
+        );
+        const audioBlob = new Blob(audioChunksRef.current, { type: actualMime });
+        const blobUrl = URL.createObjectURL(audioBlob);
+
+        const newRecording: LocalAudioPitchRecording = {
+          id: `pitch_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          scenarioId: scenario.id,
+          scenarioTitleFa: scenario.titleFa,
+          stepNumber: currentStepIndex + 1,
+          createdAtIso: new Date().toISOString(),
+          durationSec: elapsedSec,
+          mimeType: actualMime,
+          blob: audioBlob,
+          blobUrl,
+          transcriptFa:
+            customSpeechInput.trim() ||
+            `پاسخ صوتی ضبط‌شده در گام ${currentStepIndex + 1} (${scenario.clientNameFa})`,
+          selfCritiqueNotes: {
+            calmAndRespectfulTone: true,
+            mentionedCoreValue: false,
+            avoidedNegativeWords: true,
+            confidentPacing: false,
+            selfRating: 4,
+          },
+        };
+
+        setRecordings((prev) => [newRecording, ...prev]);
+        await saveRecordingBlobToIdb(newRecording);
+        stopMediaStreamAndTimers();
+        setIsRecordingAudio(false);
+        setRecordingSeconds(0);
+        setRecorderStatusMsg(
+          'صدای شما با موفقیت ضبط و به صورت محلی (Audio Blob) ذخیره شد. اکنون می‌توانید در استودیوی زیر صدای خود را بازپخش و خودارزیابی کنید.'
+        );
+      };
+
+      mediaRecorderRef.current = recorder;
+      recordingStartMsRef.current = Date.now();
+      setRecordingSeconds(0);
+      setIsRecordingAudio(true);
+      setRecorderStatusMsg(
+        'در حال ضبط صدای پاسخ شما با MediaRecorder... پیج فروش خود را با لحن محترمانه بیان کنید.'
+      );
+
+      recorder.start(250);
+
+      // Also start speech-to-text in parallel if available and not already running
+      if (!isRecording) {
+        const SpeechRecognitionAPI =
+          (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognitionAPI) {
+          try {
+            const recognition = new SpeechRecognitionAPI();
+            recognition.lang = 'fa-IR';
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.onstart = () => setIsRecording(true);
+            recognition.onresult = (event: any) => {
+              const latest =
+                event.results?.[event.results.length - 1]?.[0]?.transcript || '';
+              if (latest) {
+                setCustomSpeechInput((prev) => (prev ? `${prev} ${latest}` : latest));
+              }
+            };
+            recognition.onerror = () => setIsRecording(false);
+            recognition.onend = () => setIsRecording(false);
+            recognitionRef.current = recognition;
+            recognition.start();
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      recordingTimerRef.current = window.setInterval(() => {
+        setRecordingSeconds(Math.floor((Date.now() - recordingStartMsRef.current) / 1000));
+      }, 500);
+    } catch {
+      setIsRecordingAudio(false);
+      stopMediaStreamAndTimers();
+      setRecorderStatusMsg(
+        'دسترسی به میکروفون امکان‌پذیر نشد. لطفاً مجوز میکروفون مرورگر را بررسی کنید.'
+      );
+    }
+  };
+
+  const handleStopMediaRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    } else {
+      stopMediaStreamAndTimers();
+      setIsRecordingAudio(false);
+    }
+    if (isRecording && recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
+      setIsListeningStateFalse();
+    }
+  };
+
+  const setIsListeningStateFalse = () => {
+    setIsRecording(false);
+  };
+
+  const handleToggleRecordResponse = () => {
+    if (isRecordingAudio) {
+      handleStopMediaRecording();
+    } else {
+      handleStartMediaRecording();
+    }
+  };
+
+  const handleTogglePlayRecording = (recId: string) => {
+    const audioEl = audioPlayerRefs.current[recId];
+    if (!audioEl) return;
+
+    Object.entries(audioPlayerRefs.current).forEach(([id, el]) => {
+      if (id !== recId && el && !el.paused) {
+        el.pause();
+      }
+    });
+
+    if (playingRecordingId === recId && !audioEl.paused) {
+      audioEl.pause();
+      setPlayingRecordingId(null);
+    } else {
+      audioEl.playbackRate = playbackRate;
+      audioEl
+        .play()
+        .then(() => {
+          setPlayingRecordingId(recId);
+        })
+        .catch(() => {
+          setPlayingRecordingId(null);
+        });
+    }
+  };
+
+  const handleChangePlaybackRate = (newRate: number) => {
+    setPlaybackRate(newRate);
+    if (playingRecordingId) {
+      const activeEl = audioPlayerRefs.current[playingRecordingId];
+      if (activeEl) {
+        activeEl.playbackRate = newRate;
+      }
+    }
+  };
+
+  const handleUpdateSelfCritique = async (
+    recId: string,
+    updater: (
+      prev: LocalAudioPitchRecording['selfCritiqueNotes']
+    ) => LocalAudioPitchRecording['selfCritiqueNotes']
+  ) => {
+    let updatedItem: LocalAudioPitchRecording | null = null;
+    setRecordings((prev) =>
+      prev.map((item) => {
+        if (item.id !== recId) return item;
+        updatedItem = {
+          ...item,
+          selfCritiqueNotes: updater(item.selfCritiqueNotes),
+        };
+        return updatedItem;
+      })
+    );
+    if (updatedItem) {
+      await saveRecordingBlobToIdb(updatedItem);
+    }
+  };
+
+  const handleDeleteRecording = async (recId: string) => {
+    const target = recordings.find((r) => r.id === recId);
+    if (target) {
+      const el = audioPlayerRefs.current[recId];
+      if (el && !el.paused) el.pause();
+      URL.revokeObjectURL(target.blobUrl);
+    }
+    if (playingRecordingId === recId) {
+      setPlayingRecordingId(null);
+    }
+    setRecordings((prev) => prev.filter((r) => r.id !== recId));
+    await deleteRecordingBlobFromIdb(recId);
+  };
+
+  const formatDuration = (sec: number): string => {
+    const mins = Math.floor(sec / 60);
+    const rem = sec % 60;
+    return `${String(mins).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+  };
+
+  const getProductNameFa = (productId: string): string => {
+    if (productId === 'GENERAL') return 'جامع عمومی';
+    const found = ECOSYSTEM_PRODUCTS.find((p) => p.id === productId);
+    return found ? found.nameFa.split('(')[0].trim() : productId;
+  };
+
+  const currentScenarioRecordings = showAllScenarioRecordings
+    ? recordings
+    : recordings.filter((r) => r.scenarioId === scenario.id);
 
   const handleSelectScenario = (scen: SalesScenario) => {
     setSelectedScenarioId(scen.id);
@@ -308,7 +754,7 @@ export const SimulatedSalesWorld: React.FC<SimulatedSalesWorldProps> = ({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {scen.productId === 'GENERAL' ? 'جامع عمومی' : scen.productId} · {scen.clientNameFa}
+                {getProductNameFa(scen.productId)} · {scen.clientNameFa}
               </button>
             );
           })}
@@ -761,28 +1207,79 @@ export const SimulatedSalesWorld: React.FC<SimulatedSalesWorldProps> = ({
                   >
                     جمله خودتان به مشتری را بگویید یا بنویسید:
                   </label>
-                  <button
-                    type="button"
-                    onClick={toggleVoiceRecording}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${
-                      isRecording
-                        ? 'bg-red-600 text-white'
-                        : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                    }`}
-                  >
-                    {isRecording ? (
-                      <>
-                        <MicOff className="w-3.5 h-3.5" />
-                        <span>توقف ضبط صدا</span>
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="w-3.5 h-3.5 text-sky-700" />
-                        <span>ضبط صوتی با میکروفون (فارسی)</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleToggleRecordResponse}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                        isRecordingAudio
+                          ? 'bg-red-600 text-white animate-pulse'
+                          : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                      }`}
+                    >
+                      {isRecordingAudio ? (
+                        <>
+                          <MicOff className="w-3.5 h-3.5" />
+                          <span>توقف و ذخیره صدا ({formatDuration(recordingSeconds)})</span>
+                        </>
+                      ) : (
+                        <>
+                          <Headphones className="w-3.5 h-3.5" />
+                          <span>Record Response (ضبط و بازپخش صدا)</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={toggleVoiceRecording}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                        isRecording
+                          ? 'bg-red-600 text-white'
+                          : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
+                      }`}
+                    >
+                      {isRecording ? (
+                        <>
+                          <MicOff className="w-3.5 h-3.5" />
+                          <span>توقف تایپ صوتی</span>
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="w-3.5 h-3.5 text-sky-700" />
+                          <span>تبدیل گفتار به متن</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Live Audio Waveform Level Meter when MediaRecorder is active */}
+                {isRecordingAudio && (
+                  <div className="p-3 rounded-xl bg-red-950 text-white border border-red-500/50 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-red-200 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                        در حال ضبط صدای واقعی شما (MediaRecorder Audio Blob)...
+                      </span>
+                      <span className="font-mono-tabular font-bold text-amber-300">
+                        {formatDuration(recordingSeconds)}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full bg-red-900/70 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-l from-amber-400 to-emerald-400 transition-all duration-75"
+                        style={{ width: `${Math.max(8, audioLevel)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {recorderStatusMsg && (
+                  <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-[11px] font-semibold text-sky-900">
+                    {recorderStatusMsg}
+                  </div>
+                )}
 
                 <textarea
                   id="ambassador-speech-input"
@@ -809,6 +1306,260 @@ export const SimulatedSalesWorld: React.FC<SimulatedSalesWorldProps> = ({
               </div>
             </div>
           )}
+
+          {/* MediaRecorder 'Record Response' & Self-Critique Audio Studio (Always available in Both Modes) */}
+          <div className="pt-4 border-t border-slate-200 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Headphones className="w-4 h-4 text-sky-700" />
+                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
+                  استودیوی ضبط پاسخ و خودارزیابی صوتی (Record Response & Self-Critique)
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleRecordResponse}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap ${
+                  isRecordingAudio
+                    ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
+                    : 'bg-slate-900 hover:bg-slate-800 text-amber-300'
+                }`}
+              >
+                {isRecordingAudio ? (
+                  <>
+                    <MicOff className="w-3.5 h-3.5" />
+                    <span>پایان ضبط و ذخیره ({formatDuration(recordingSeconds)})</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-3.5 h-3.5 text-amber-400" />
+                    <span>ضبط صدای پرزنت شما (Record Response)</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              با استفاده از <span className="font-mono-tabular font-semibold">MediaRecorder API</span> صدای واقعی پرزنت خود را ضبط کنید، فایل صوتی (Audio Blob) را که به صورت محلی در مرورگر شما ذخیره شده بازپخش نمایید و لحن، احترام کلامی و تسلط خود را قبل از ورود به بازار نقد و بررسی کنید.
+            </p>
+
+            {/* Playback Speed & Filter Bar */}
+            {recordings.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-slate-700">سرعت بازپخش:</span>
+                  {[0.85, 1, 1.25].map((rate) => (
+                    <button
+                      key={rate}
+                      type="button"
+                      onClick={() => handleChangePlaybackRate(rate)}
+                      className={`px-2 py-0.5 rounded font-mono-tabular font-bold cursor-pointer ${
+                        playbackRate === rate
+                          ? 'bg-sky-700 text-white'
+                          : 'bg-white text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {rate}x
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAllScenarioRecordings((prev) => !prev)}
+                  className="text-sky-700 hover:underline font-bold cursor-pointer"
+                >
+                  {showAllScenarioRecordings
+                    ? `فقط ضبط‌های همین سناریو (${recordings.filter((r) => r.scenarioId === scenario.id).length})`
+                    : `نمایش کل آرشیو صوتی محلی (${recordings.length})`}
+                </button>
+              </div>
+            )}
+
+            {/* Recorded Audio Blobs List & Self-Critique Rubric */}
+            {currentScenarioRecordings.length === 0 ? (
+              <div className="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-center text-xs text-slate-500">
+                هنوز پاسخی برای این سناریو ضبط نکرده‌اید. روی دکمه «ضبط صدای پرزنت شما (Record Response)» کلیک کنید و دیالوگ خود را با صدای بلند تمرین نمایید.
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                {currentScenarioRecordings.map((rec) => {
+                  const isPlaying = playingRecordingId === rec.id;
+                  const progressPct = playbackProgress[rec.id] || 0;
+                  return (
+                    <div
+                      key={rec.id}
+                      className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <span className="text-xs font-extrabold text-slate-900 block">
+                            گام {rec.stepNumber} · {rec.scenarioTitleFa}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-mono-tabular">
+                            مدت: {formatDuration(rec.durationSec)} · ذخیره محلی ({rec.mimeType.split(';')[0]})
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePlayRecording(rec.id)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              isPlaying
+                                ? 'bg-amber-500 text-slate-950'
+                                : 'bg-sky-700 hover:bg-sky-800 text-white'
+                            }`}
+                          >
+                            {isPlaying ? (
+                              <>
+                                <Pause className="w-3.5 h-3.5" />
+                                <span>توقف</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3.5 h-3.5" />
+                                <span>بازپخش صدای شما</span>
+                              </>
+                            )}
+                          </button>
+
+                          <a
+                            href={rec.blobUrl}
+                            download={`foroshyar-pitch-${rec.scenarioId}-step${rec.stepNumber}.webm`}
+                            className="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
+                            title="دانلود فایل صوتی ضبط‌شده"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRecording(rec.id)}
+                            className="p-1.5 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer"
+                            title="حذف این صدای ضبط‌شده"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Hidden native audio element wired to state */}
+                      <audio
+                        ref={(el) => {
+                          audioPlayerRefs.current[rec.id] = el;
+                        }}
+                        src={rec.blobUrl}
+                        onTimeUpdate={(e) => {
+                          const el = e.currentTarget;
+                          if (el.duration && Number.isFinite(el.duration)) {
+                            setPlaybackProgress((prev) => ({
+                              ...prev,
+                              [rec.id]: Math.min(100, Math.round((el.currentTime / el.duration) * 100)),
+                            }));
+                          }
+                        }}
+                        onEnded={() => {
+                          setPlayingRecordingId(null);
+                          setPlaybackProgress((prev) => ({ ...prev, [rec.id]: 100 }));
+                        }}
+                        className="hidden"
+                      />
+
+                      {/* Playback Progress Bar */}
+                      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-sky-600 transition-all duration-100"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+
+                      {/* Self-Critique Rubric Checklist */}
+                      <div className="pt-2 border-t border-slate-200/80 space-y-2">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-slate-800">
+                            چک‌لیست خودارزیابی صدای شما (Self-Critique):
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-slate-500">امتیاز به خودتان:</span>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateSelfCritique(rec.id, (prev) => ({
+                                    ...prev,
+                                    selfRating: star,
+                                  }))
+                                }
+                                className={`w-5 h-5 rounded text-[11px] font-mono-tabular font-bold cursor-pointer ${
+                                  rec.selfCritiqueNotes.selfRating >= star
+                                    ? 'bg-amber-400 text-slate-950'
+                                    : 'bg-slate-200 text-slate-500'
+                                }`}
+                              >
+                                {star}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
+                          {[
+                            {
+                              key: 'calmAndRespectfulTone' as const,
+                              label: 'لحن محترمانه و پرانرژی',
+                            },
+                            {
+                              key: 'avoidedNegativeWords' as const,
+                              label: 'عدم استفاده از واژگان منفی (جا می‌مانید/ضرر)',
+                            },
+                            {
+                              key: 'mentionedCoreValue' as const,
+                              label: 'بیان دقیق مزیت رقابتی و ROI صنف',
+                            },
+                            {
+                              key: 'confidentPacing' as const,
+                              label: 'سرعت بیان مناسب و بدون تپق',
+                            },
+                          ].map((crit) => {
+                            const checked = rec.selfCritiqueNotes[crit.key];
+                            return (
+                              <button
+                                key={crit.key}
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateSelfCritique(rec.id, (prev) => ({
+                                    ...prev,
+                                    [crit.key]: !prev[crit.key],
+                                  }))
+                                }
+                                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-right transition-colors cursor-pointer ${
+                                  checked
+                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-semibold'
+                                    : 'bg-white border-slate-200 text-slate-600'
+                                }`}
+                              >
+                                <span
+                                  className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[10px] font-bold ${
+                                    checked
+                                      ? 'bg-emerald-600 text-white'
+                                      : 'border border-slate-300 text-transparent'
+                                  }`}
+                                >
+                                  ✓
+                                </span>
+                                <span>{crit.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Current Ambassador Simulation Status Note */}
           <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">

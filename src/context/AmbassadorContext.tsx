@@ -46,6 +46,22 @@ interface VerifiedServerSession {
   securityNoteFa?: string;
 }
 
+export interface XpActivityLogItem {
+  id: string;
+  reasonFa: string;
+  delta: number;
+  timestamp: string;
+}
+
+export interface AmbassadorRegistrationInfo {
+  mobilePhone: string;
+  email: string;
+  referralCode: string;
+  referredByCode: string;
+  isRegisteredWithContact: boolean;
+  xpHistory: XpActivityLogItem[];
+}
+
 interface AmbassadorContextValue {
   firebaseUser: User | null;
   authReady: boolean;
@@ -53,10 +69,17 @@ interface AmbassadorContextValue {
   authError: string | null;
   verifiedServerSession: VerifiedServerSession | null;
   profile: AmbassadorDomainProfile;
+  registrationInfo: AmbassadorRegistrationInfo;
   commissionPolicy: CommissionPolicy;
   updateCommissionPolicy: (policy: CommissionPolicy) => void;
   signInWithGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
+  registerWithMobileAndEmail: (params: {
+    displayName: string;
+    mobilePhone: string;
+    email: string;
+    referredByCode?: string;
+  }) => Promise<{ referralCode: string; awardedXp: number }>;
   completeGeneralTrainingStep: (progressDelta: number) => Promise<void>;
   submitGeneralExamResult: (examScore: number) => Promise<void>;
   markGeneralSimulationPassed: (trustScore: number, mistakesCount: number) => Promise<void>;
@@ -70,6 +93,7 @@ interface AmbassadorContextValue {
     mistakesCount: number
   ) => Promise<void>;
   completeProductFieldEvaluation: (productId: ProductId, passed: boolean) => Promise<void>;
+  adjustAmbassadorXp: (xpDelta: number, reasonFa?: string) => Promise<void>;
   applyPresetProfileScenario: (
     preset: 'BRIEF_MULTI_PRODUCT_EXAMPLE' | 'TIER_A_PLUS_PLUS' | 'REASSESSMENT_TIER_B' | 'FRESH_START'
   ) => Promise<void>;
@@ -201,6 +225,65 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [commissionPolicy, setCommissionPolicy] = useState<CommissionPolicy>(
     DEFAULT_COMMISSION_POLICY
   );
+
+  const [registrationInfo, setRegistrationInfo] = useState<AmbassadorRegistrationInfo>(() => {
+    try {
+      const saved = localStorage.getItem('foroshyar_ambassador_registration_v4');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.referralCode) {
+          return parsed as AmbassadorRegistrationInfo;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return {
+      mobilePhone: '',
+      email: 'ambassador@ablecity.ir',
+      referralCode: 'TVN-AMB-1042',
+      referredByCode: '',
+      isRegisteredWithContact: false,
+      xpHistory: [
+        {
+          id: 'init_xp_1',
+          reasonFa: 'امتیاز پایه ورود به آکادمی فروشیار و قبولی در ۲ گواهینامه اولیه',
+          delta: 420,
+          timestamp: new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
+        },
+      ],
+    };
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'foroshyar_ambassador_registration_v4',
+        JSON.stringify(registrationInfo)
+      );
+    } catch {
+      // ignore
+    }
+  }, [registrationInfo]);
+
+  const appendXpLog = useCallback((delta: number, reasonFa: string) => {
+    if (delta === 0) return;
+    setRegistrationInfo((prev) => ({
+      ...prev,
+      xpHistory: [
+        {
+          id: `xp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          reasonFa,
+          delta,
+          timestamp: new Date().toLocaleTimeString('fa-IR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        },
+        ...prev.xpHistory.slice(0, 24),
+      ],
+    }));
+  }, []);
 
   // Offline-First synchronization for practice, training, and simulations
   useEffect(() => {
@@ -474,6 +557,7 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       xp: profile.xp + 35,
       updatedAt: new Date().toISOString(),
     };
+    appendXpLog(35, 'مطالعه گام آموزشی در آکادمی جامع فروشیار');
     await persistAmbassadorFields(updated);
   };
 
@@ -494,6 +578,7 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       xp: profile.xp + 80,
       updatedAt: new Date().toISOString(),
     };
+    appendXpLog(80, `ثبت نمره ${examScore}٪ در آزمون جامع تعیین سطح (${evalResult.tier})`);
     await persistAmbassadorFields(updated);
   };
 
@@ -502,6 +587,7 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const newSimPassed = profile.generalSimulationPassed || passed;
     const evalResult = evaluateGeneralCertification(profile.generalExamScore, newSimPassed);
 
+    const delta = passed ? 100 : 30;
     const updated: AmbassadorDomainProfile = {
       ...profile,
       generalSimulationPassed: newSimPassed,
@@ -515,10 +601,11 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           ? evalResult.reassessmentRequired
           : profile.reassessmentRequired,
       academyStage: evalResult.nextStage || profile.academyStage,
-      xp: profile.xp + (passed ? 100 : 30),
+      xp: profile.xp + delta,
       completedScenariosCount: profile.completedScenariosCount + 1,
       updatedAt: new Date().toISOString(),
     };
+    appendXpLog(delta, `تکمیل شبیه‌سازی مذاکره عمومی (اعتماد مشتری: ${trustScore}٪)`);
     await persistAmbassadorFields(updated);
 
     if (firebaseUser) {
@@ -589,6 +676,7 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       },
       updatedAt: new Date().toISOString(),
     };
+    appendXpLog(50, `تکمیل سرفصل آموزشی و پلی‌بوک صنف (${productId})`);
     await persistAmbassadorFields(nextProfile);
     await persistProductCert(updatedCert);
   };
@@ -607,15 +695,17 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       status: lifecycle.status,
       updatedAt: new Date().toISOString(),
     };
+    const delta = score >= 75 ? 90 : 20;
     const nextProfile: AmbassadorDomainProfile = {
       ...profile,
-      xp: profile.xp + (score >= 75 ? 90 : 20),
+      xp: profile.xp + delta,
       productCertifications: {
         ...profile.productCertifications,
         [productId]: updatedCert,
       },
       updatedAt: new Date().toISOString(),
     };
+    appendXpLog(delta, `شرکت در آزمون تخصصی صنف (${productId}) با نمره ${score}٪`);
     await persistAmbassadorFields(nextProfile);
     await persistProductCert(updatedCert);
   };
@@ -694,6 +784,106 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
     await persistAmbassadorFields(nextProfile);
     await persistProductCert(updatedCert);
+  };
+
+  const adjustAmbassadorXp = async (xpDelta: number, reasonFa?: string) => {
+    const roundedDelta = Math.round(xpDelta);
+    const nextXp = Math.max(0, Math.min(1000000, Math.round(profile.xp + roundedDelta)));
+    const nextProfile: AmbassadorDomainProfile = {
+      ...profile,
+      xp: nextXp,
+      updatedAt: new Date().toISOString(),
+    };
+    if (reasonFa) {
+      appendXpLog(roundedDelta, reasonFa);
+    }
+    await persistAmbassadorFields(nextProfile);
+  };
+
+  const registerWithMobileAndEmail = async (params: {
+    displayName: string;
+    mobilePhone: string;
+    email: string;
+    referredByCode?: string;
+  }): Promise<{ referralCode: string; awardedXp: number }> => {
+    const cleanName = params.displayName.trim() || profile.displayName;
+    const cleanPhone = params.mobilePhone.trim();
+    const cleanEmail = params.email.trim() || profile.email;
+    const cleanRefBy = (params.referredByCode || '').trim().toUpperCase();
+
+    // Generate deterministic official referral code from phone digits + email prefix
+    const digitsOnly = cleanPhone.replace(/[^0-9۰-۹]/g, '');
+    const normalizedDigits = digitsOnly.replace(/[۰-۹]/g, (d) =>
+      String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    );
+    const suffix4 =
+      normalizedDigits.length >= 4
+        ? normalizedDigits.slice(-4)
+        : String(1000 + Math.floor(Math.random() * 8999));
+    const emailPrefix = cleanEmail
+      .split('@')[0]
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toUpperCase()
+      .slice(0, 3) || 'AMB';
+
+    const generatedCode = `TVN-${emailPrefix}-${suffix4}`;
+
+    const isFirstContactReg = !registrationInfo.isRegisteredWithContact;
+    const baseBonus = isFirstContactReg ? 150 : 0;
+    const referralBonus =
+      isFirstContactReg && cleanRefBy && cleanRefBy !== generatedCode ? 100 : 0;
+    const totalBonus = baseBonus + referralBonus;
+
+    setRegistrationInfo((prev) => {
+      const newLogs: XpActivityLogItem[] = [...prev.xpHistory];
+      if (baseBonus > 0) {
+        newLogs.unshift({
+          id: `reg_${Date.now()}`,
+          reasonFa: `ثبت‌نام رسمی با موبایل (${cleanPhone}) و ایمیل و صدور کد معرف ${generatedCode}`,
+          delta: baseBonus,
+          timestamp: new Date().toLocaleTimeString('fa-IR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        });
+      }
+      if (referralBonus > 0) {
+        newLogs.unshift({
+          id: `refby_${Date.now()}`,
+          reasonFa: `پاداش ورود با کد معرف دعوت‌کننده (${cleanRefBy})`,
+          delta: referralBonus,
+          timestamp: new Date().toLocaleTimeString('fa-IR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+        });
+      }
+      return {
+        mobilePhone: cleanPhone,
+        email: cleanEmail,
+        referralCode: generatedCode,
+        referredByCode: cleanRefBy || prev.referredByCode,
+        isRegisteredWithContact: true,
+        xpHistory: newLogs.slice(0, 25),
+      };
+    });
+
+    try {
+      localStorage.setItem('foroshyar_ambassador_ref_code', generatedCode);
+    } catch {
+      // ignore
+    }
+
+    const nextProfile: AmbassadorDomainProfile = {
+      ...profile,
+      displayName: cleanName,
+      email: cleanEmail,
+      xp: Math.min(1000000, profile.xp + totalBonus),
+      updatedAt: new Date().toISOString(),
+    };
+    await persistAmbassadorFields(nextProfile);
+
+    return { referralCode: generatedCode, awardedXp: totalBonus };
   };
 
   const applyPresetProfileScenario = async (
@@ -844,10 +1034,12 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         authError,
         verifiedServerSession,
         profile,
+        registrationInfo,
         commissionPolicy,
         updateCommissionPolicy: setCommissionPolicy,
         signInWithGoogle,
         signOutUser,
+        registerWithMobileAndEmail,
         completeGeneralTrainingStep,
         submitGeneralExamResult,
         markGeneralSimulationPassed,
@@ -856,6 +1048,7 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         submitProductExam,
         markProductSimulationOutcome,
         completeProductFieldEvaluation,
+        adjustAmbassadorXp,
         applyPresetProfileScenario,
       }}
     >

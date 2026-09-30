@@ -298,6 +298,343 @@ async function startServer() {
     }
   });
 
+  // ============================================================================
+  // REAL-TIME GROUP CHAT ROOMS (Strictly Group Channels Only — No Private DMs)
+  // & TAVANA CITY REFERRAL / XP LEAGUE STATE
+  // ============================================================================
+  interface GroupChatMessage {
+    id: string;
+    roomId: 'general_hall' | 'xp_metaverse_club' | 'council_governance' | 'multilingual_hall';
+    senderName: string;
+    senderReferralCode: string;
+    senderTier: string;
+    senderXp: number;
+    text: string;
+    createdAtIso: string;
+    timeLabelFa: string;
+  }
+
+  interface LeagueMemberRecord {
+    referralCode: string;
+    displayName: string;
+    mobileMasked: string;
+    emailMasked: string;
+    tier: string;
+    xp: number;
+    certifiedProductsCount: number;
+    referredFriendsCount: number;
+    referredByCode: string;
+    donatedXpTotal: number;
+    receivedTributeXpTotal: number;
+    cityNameFa: string;
+    updatedAtIso: string;
+  }
+
+  const groupChatMessages: GroupChatMessage[] = [
+    {
+      id: 'msg_seed_1',
+      roomId: 'general_hall',
+      senderName: 'نگار فرهمند (سفیر ارشد تهران)',
+      senderReferralCode: 'TVN-NEG-9121',
+      senderTier: 'A++',
+      senderXp: 3450,
+      text: 'سلام به همه سفیران توانا سیتی! امروز در بورس تجهیزات پزشکی ولیعصر با دموی ۱۰ ثانیه‌ای «طب‌یار» و نمایش کد اصالت IMED، دو قرارداد لایسنس + سایت دائمی بسته شد. حتماً قفل خریدار رو بیرون مغازه فعال کنید!',
+      createdAtIso: new Date(Date.now() - 1800000).toISOString(),
+      timeLabelFa: '۳۰ دقیقه پیش',
+    },
+    {
+      id: 'msg_seed_2',
+      roomId: 'xp_metaverse_club',
+      senderName: 'آرش سبحانی (سفیر اصفهان - جلفا)',
+      senderReferralCode: 'TVN-ARA-3144',
+      senderTier: 'A+',
+      senderXp: 2680,
+      text: 'دوستان عزیز، با عبور از مرز ۲,۵۰۰ XP سند دیجیتال قطعه زمین رایگان متاورسی در شهر AbleCity برام صادر شد و امروز ۳۰٪ از XP هفتگی خودم رو به دو نفر از دوستان تازه‌وارد تیمم اهدا کردم تا سریع‌تر به سطح زمین رایگان برسند.',
+      createdAtIso: new Date(Date.now() - 1200000).toISOString(),
+      timeLabelFa: '۲۰ دقیقه پیش',
+    },
+    {
+      id: 'msg_seed_3',
+      roomId: 'council_governance',
+      senderName: 'مهندس کاوه راد (سفیر تبریز)',
+      senderReferralCode: 'TVN-KAV-4118',
+      senderTier: 'A++',
+      senderXp: 5120,
+      text: 'فلسفه دموکراسی ثروت و جایگاه در اکوسیستم آفرینش بی‌نظیره؛ هر کسی در مدیریت برنامه تخصصی خودش بدرخشه و شبکه معرفین قوی بسازه، مستقیم وارد هیئت مدیره برنامه و نامزدی صندلی‌های شورای شهر توانا می‌شه.',
+      createdAtIso: new Date(Date.now() - 600000).toISOString(),
+      timeLabelFa: '۱۰ دقیقه پیش',
+    },
+    {
+      id: 'msg_seed_4',
+      roomId: 'multilingual_hall',
+      senderName: 'آناهیتا سرکیسیان (سفیر تهران / ایروان)',
+      senderReferralCode: 'TVN-ANA-7720',
+      senderTier: 'A+',
+      senderXp: 1940,
+      text: 'Բարև ձեզ (بارِو ذِز)! اضافه شدن زبان ارمنی (Հայերեն) به همراه تلفظ فارسی برای مذاکره با گالری‌های طلا و استودیوهای صدا عالی شده. اگر سوالی درباره تلفظ جملات ارمنی داشتید در همین تالار گروهی بپرسید.',
+      createdAtIso: new Date(Date.now() - 300000).toISOString(),
+      timeLabelFa: '۵ دقیقه پیش',
+    },
+  ];
+
+  const leagueMembersMap = new Map<string, LeagueMemberRecord>([
+    [
+      'TVN-KAV-4118',
+      {
+        referralCode: 'TVN-KAV-4118',
+        displayName: 'مهندس کاوه راد (سفیر تبریز)',
+        mobileMasked: '0914***4118',
+        emailMasked: 'kav***@ablecity.ir',
+        tier: 'A++',
+        xp: 5120,
+        certifiedProductsCount: 11,
+        referredFriendsCount: 14,
+        referredByCode: '',
+        donatedXpTotal: 640,
+        receivedTributeXpTotal: 890,
+        cityNameFa: 'تبریز',
+        updatedAtIso: new Date().toISOString(),
+      },
+    ],
+    [
+      'TVN-NEG-9121',
+      {
+        referralCode: 'TVN-NEG-9121',
+        displayName: 'نگار فرهمند (سفیر ارشد تهران)',
+        mobileMasked: '0912***9121',
+        emailMasked: 'neg***@ablecity.ir',
+        tier: 'A++',
+        xp: 3450,
+        certifiedProductsCount: 9,
+        referredFriendsCount: 9,
+        referredByCode: 'TVN-KAV-4118',
+        donatedXpTotal: 420,
+        receivedTributeXpTotal: 510,
+        cityNameFa: 'تهران',
+        updatedAtIso: new Date().toISOString(),
+      },
+    ],
+    [
+      'TVN-ARA-3144',
+      {
+        referralCode: 'TVN-ARA-3144',
+        displayName: 'آرش سبحانی (سفیر اصفهان)',
+        mobileMasked: '0913***3144',
+        emailMasked: 'ara***@ablecity.ir',
+        tier: 'A+',
+        xp: 2680,
+        certifiedProductsCount: 6,
+        referredFriendsCount: 7,
+        referredByCode: 'TVN-NEG-9121',
+        donatedXpTotal: 310,
+        receivedTributeXpTotal: 380,
+        cityNameFa: 'اصفهان',
+        updatedAtIso: new Date().toISOString(),
+      },
+    ],
+    [
+      'TVN-ANA-7720',
+      {
+        referralCode: 'TVN-ANA-7720',
+        displayName: 'آناهیتا سرکیسیان (سفیر تهران / جلفا)',
+        mobileMasked: '0912***7720',
+        emailMasked: 'ana***@ablecity.ir',
+        tier: 'A+',
+        xp: 1940,
+        certifiedProductsCount: 5,
+        referredFriendsCount: 5,
+        referredByCode: 'TVN-NEG-9121',
+        donatedXpTotal: 180,
+        receivedTributeXpTotal: 290,
+        cityNameFa: 'تهران / ایروان',
+        updatedAtIso: new Date().toISOString(),
+      },
+    ],
+    [
+      'TVN-SAR-5019',
+      {
+        referralCode: 'TVN-SAR-5019',
+        displayName: 'سارا علوی (سفیر مشهد)',
+        mobileMasked: '0915***5019',
+        emailMasked: 'sar***@ablecity.ir',
+        tier: 'A',
+        xp: 1290,
+        certifiedProductsCount: 3,
+        referredFriendsCount: 3,
+        referredByCode: 'TVN-ARA-3144',
+        donatedXpTotal: 90,
+        receivedTributeXpTotal: 150,
+        cityNameFa: 'مشهد',
+        updatedAtIso: new Date().toISOString(),
+      },
+    ],
+  ]);
+
+  const sseClients = new Set<Response>();
+
+  function broadcastSseEvent(eventType: string, payload: unknown) {
+    const dataStr = `event: ${eventType}\ndata: ${JSON.stringify(payload)}\n\n`;
+    for (const client of sseClients) {
+      try {
+        client.write(dataStr);
+      } catch {
+        sseClients.delete(client);
+      }
+    }
+  }
+
+  // SSE Stream for Live Group Chat & Leaderboard updates
+  app.get('/api/chat/stream', (req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    sseClients.add(res);
+    res.write(
+      `event: init\ndata: ${JSON.stringify({
+        messages: groupChatMessages.slice(-60),
+        leaderboard: Array.from(leagueMembersMap.values()),
+        onlineCount: sseClients.size + 4,
+      })}\n\n`
+    );
+
+    req.on('close', () => {
+      sseClients.delete(res);
+    });
+  });
+
+  // Get current group chat messages + leaderboard
+  app.get('/api/chat/state', (_req: Request, res: Response) => {
+    res.json({
+      messages: groupChatMessages.slice(-60),
+      leaderboard: Array.from(leagueMembersMap.values()),
+      onlineCount: sseClients.size + 4,
+    });
+  });
+
+  // Post a new message to one of the Public Group Chat Rooms (No private 1-on-1 chat allowed)
+  app.post('/api/chat/messages', (req: Request, res: Response) => {
+    const {
+      id,
+      roomId,
+      senderName,
+      senderReferralCode,
+      senderTier,
+      senderXp,
+      text,
+    } = req.body || {};
+
+    if (!text || typeof text !== 'string' || !text.trim()) {
+      return res.status(400).json({ error: 'EMPTY_MESSAGE' });
+    }
+
+    const msgId =
+      typeof id === 'string' && id.trim()
+        ? id.trim()
+        : `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+    // Idempotency guard
+    const existing = groupChatMessages.find((m) => m.id === msgId);
+    if (existing) {
+      return res.json({ message: existing, duplicate: true });
+    }
+
+    const validRooms = [
+      'general_hall',
+      'xp_metaverse_club',
+      'council_governance',
+      'multilingual_hall',
+    ] as const;
+    const safeRoom = validRooms.includes(roomId) ? roomId : 'general_hall';
+
+    const newMsg: GroupChatMessage = {
+      id: msgId,
+      roomId: safeRoom,
+      senderName: String(senderName || 'سفیر فروشیار').slice(0, 70),
+      senderReferralCode: String(senderReferralCode || 'TVN-AMB-1042').slice(0, 24),
+      senderTier: String(senderTier || 'A+').slice(0, 10),
+      senderXp: Number(senderXp || 420),
+      text: text.trim().slice(0, 600),
+      createdAtIso: new Date().toISOString(),
+      timeLabelFa: new Date().toLocaleTimeString('fa-IR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+
+    groupChatMessages.push(newMsg);
+    if (groupChatMessages.length > 120) {
+      groupChatMessages.shift();
+    }
+
+    broadcastSseEvent('chat:message_created', newMsg);
+    return res.json({ message: newMsg });
+  });
+
+  // Sync Ambassador Registration & XP with the Live Leaderboard
+  app.post('/api/league/sync', (req: Request, res: Response) => {
+    const {
+      referralCode,
+      displayName,
+      mobilePhone,
+      email,
+      tier,
+      xp,
+      certifiedProductsCount,
+      referredFriendsCount,
+      referredByCode,
+      donatedXpTotal,
+      receivedTributeXpTotal,
+      cityNameFa,
+    } = req.body || {};
+
+    if (!referralCode || typeof referralCode !== 'string') {
+      return res.status(400).json({ error: 'MISSING_REFERRAL_CODE' });
+    }
+
+    const cleanPhone = String(mobilePhone || '');
+    const maskedPhone =
+      cleanPhone.length >= 7
+        ? `${cleanPhone.slice(0, 4)}***${cleanPhone.slice(-4)}`
+        : '0912***1042';
+    const cleanEmail = String(email || 'ambassador@ablecity.ir');
+    const maskedEmail = cleanEmail.includes('@')
+      ? `${cleanEmail.slice(0, 3)}***@${cleanEmail.split('@')[1]}`
+      : 'amb***@ablecity.ir';
+
+    const existing = leagueMembersMap.get(referralCode);
+    const updatedRecord: LeagueMemberRecord = {
+      referralCode: referralCode.slice(0, 24),
+      displayName: String(displayName || existing?.displayName || 'سفیر توانا سیتی').slice(0, 70),
+      mobileMasked: maskedPhone,
+      emailMasked: maskedEmail,
+      tier: String(tier || existing?.tier || 'A+'),
+      xp: Math.max(0, Number(xp ?? existing?.xp ?? 420)),
+      certifiedProductsCount: Math.max(
+        0,
+        Number(certifiedProductsCount ?? existing?.certifiedProductsCount ?? 2)
+      ),
+      referredFriendsCount: Math.max(
+        0,
+        Number(referredFriendsCount ?? existing?.referredFriendsCount ?? 0)
+      ),
+      referredByCode: String(referredByCode ?? existing?.referredByCode ?? ''),
+      donatedXpTotal: Math.max(0, Number(donatedXpTotal ?? existing?.donatedXpTotal ?? 0)),
+      receivedTributeXpTotal: Math.max(
+        0,
+        Number(receivedTributeXpTotal ?? existing?.receivedTributeXpTotal ?? 0)
+      ),
+      cityNameFa: String(cityNameFa || existing?.cityNameFa || 'تهران'),
+      updatedAtIso: new Date().toISOString(),
+    };
+
+    leagueMembersMap.set(referralCode, updatedRecord);
+    const allMembers = Array.from(leagueMembersMap.values());
+    broadcastSseEvent('league:updated', allMembers);
+    return res.json({ member: updatedRecord, leaderboard: allMembers });
+  });
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },

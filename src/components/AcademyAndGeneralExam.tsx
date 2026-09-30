@@ -172,7 +172,59 @@ export const AcademyAndGeneralExam: React.FC<AcademyAndGeneralExamProps> = ({
       </div>
 
       {activeTab === 'TRAINING' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="space-y-6">
+          {/* ====================================================================
+              PHILOSOPHY OF ECOSYSTEM OF CREATION & TAVANA CITY NEW METAVERSE WORLD
+          ==================================================================== */}
+          <div className="bg-gradient-to-l from-slate-950 via-sky-950 to-slate-900 text-white rounded-2xl p-6 sm:p-8 border border-amber-500/40 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div>
+                <p className="text-xs font-extrabold text-amber-400">
+                  ✦ درس اول آکادمی (ضروری برای تمام سفیران): شناخت هویت، ریشه و آرمان مجموعه
+                </p>
+                <h2 className="text-lg sm:text-xl font-extrabold text-white mt-1">
+                  فلسفه «اکوسیستم آفرینش» و «شهر نیو متاورسی جهان توانا سیتی (Tavana City)»
+                </h2>
+              </div>
+              <button
+                onClick={() => completeGeneralTrainingStep(25)}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold rounded-xl transition-colors whitespace-nowrap"
+              >
+                ثبت مطالعه فلسفه توانا سیتی (+۲۵٪ پیشرفت)
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <span className="font-extrabold text-amber-300 block">
+                  ۱. تولد از دل «سامانه جامع پوشاک ایران»
+                </span>
+                <p className="text-slate-300 leading-relaxed">
+                  کل تفکر و معماری این اپلیکیشن از دل <strong className="text-white">«سامانه جامع پوشاک ایران (پوشاک‌یار)»</strong> متولد شد؛ جایی که مشخص شد بزرگ‌ترین درد اصناف ایران، خروج مشتری مردد با جمله «یک دور در بازار بزنیم برمی‌گردیم» و پیچیدگی حساب‌وکتاب چک صیادی است. این الگو امروز به ۱۰ سامانه صنفی توانا سیتی (کابینت‌یار، سرامیک‌یار، زیباجو، اتویار، تن‌آرا، طلایار، تالاریار، جهیزیه‌جو، پوشاک‌یار و نرخ‌یار) گسترش یافته است.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                <span className="font-extrabold text-sky-300 block">
+                  ۲. برنامه‌های شهر نیو متاورسی جهان توانا سیتی
+                </span>
+                <p className="text-slate-300 leading-relaxed">
+                  در <strong className="text-white">شهر نیو متاورسی جهان توانا سیتی (AbleCity / بندستوانا)</strong>، هر واحد صنفی (از پوشاک، مبل جهیزیه، طلا، کابینت و تالار تا کلینیک، سالن زیبایی، سنگ اسلب، اتوگالری و فروشندگان لپ‌تاپ/ویزا با نرخ درهم و لیر) صاحب یک همزاد دیجیتال، ماشین‌حساب ۱۰ ثانیه‌ای پیش‌فاکتور طلاکوب و سایت دائمی اختصاصی بدون دردسرهای مالیاتی درگاه بانکی می‌شود.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-emerald-950/70 border border-emerald-500/40 space-y-2">
+                <span className="font-extrabold text-emerald-300 block">
+                  ۳. توانمندسازی انسان‌ها، ۱۰ زبان مادری و شراکت ۲۰/۱۵
+                </span>
+                <p className="text-emerald-100 leading-relaxed">
+                  فلسفه اکوسیستم آفرینش بر پایه <strong className="text-white">دسترس‌پذیری کامل (معلولین حرکتی، بینایی، شنوایی و تمرکز)</strong>، آموزش به ۱۰ زبان و گویش مادری، و اقتصاد برد-برد است؛ به طوری که حتی اگر مغازه‌داری خودش نخرد، با کد معرف <span className="font-mono-tabular">TVN-PARTNER</span> در سود ۳۵٪ شریک می‌شود (۲۰٪ سفیر + ۱۵٪ معرف).
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Interactive Visual Demonstration of Consultative Sales vs Pitching */}
           <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -403,6 +455,7 @@ export const AcademyAndGeneralExam: React.FC<AcademyAndGeneralExamProps> = ({
                 </button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       ) : (

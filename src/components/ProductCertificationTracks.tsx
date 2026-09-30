@@ -137,7 +137,7 @@ export const ProductCertificationTracks: React.FC<ProductCertificationTracksProp
         setImportFeedback({
           ok: false,
           messageFa:
-            'شناسه محصول (catalogItem.id) معتبر نیست. باید یکی از DECORMATE, SLABMATE, SALONMATE, AUTOBARTER, TANARA, TALAYAR, EVENTMATE باشد.',
+            'شناسه محصول (catalogItem.id) معتبر نیست. باید یکی از ۱۰ سامانه اکوسیستم (DECORMATE تا NERKHYAR) باشد.',
         });
         return;
       }
@@ -156,7 +156,7 @@ export const ProductCertificationTracks: React.FC<ProductCertificationTracksProp
       setFocusedProductId(pid);
       setImportFeedback({
         ok: true,
-        messageFa: `اسکریپت آموزشی و آزمون تخصصی محصول «${mergedItem.nameFa} (${pid})» با موفقیت در موتور فروشیار ثبت و فعال شد!`,
+        messageFa: `اسکریپت آموزشی و آزمون تخصصی محصول «${mergedItem.nameFa}» با موفقیت در موتور فروشیار ثبت و فعال شد!`,
       });
       setScriptInput('');
     } catch (err) {
@@ -201,10 +201,10 @@ export const ProductCertificationTracks: React.FC<ProductCertificationTracksProp
       <div className="border-b border-slate-200 pb-6 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
           <p className="text-xs font-medium text-sky-700 mb-1">
-            معماری چندمحصولی Domain Core v4.0 · چرخه مستقل گواهینامه برای هر یک از ۷ محصول اکوسیستم آفرینش
+            معماری چندمحصولی Domain Core v4.0 · چرخه مستقل گواهینامه برای هر یک از ۱۰ سامانه اکوسیستم آفرینش توانا سیتی
           </p>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 headline-balance">
-            مسیرهای تخصصی محصول و گواهینامه‌های مستقل (Per-Product Certifications)
+            مسیرهای تخصصی ۱۰ سامانه صنفی و گواهینامه‌های مستقل (کابینت‌یار تا نرخ‌یار)
           </h1>
         </div>
 
@@ -216,7 +216,7 @@ export const ProductCertificationTracks: React.FC<ProductCertificationTracksProp
                 (pid) => profile.productCertifications[pid].status === 'CERTIFIED'
               ).length
             }{' '}
-            از ۷ محصول
+            از ۱۰ سامانه
           </strong>
         </div>
       </div>

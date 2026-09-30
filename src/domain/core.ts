@@ -44,24 +44,69 @@ export type AcademyStage =
 
 export type ProductId =
   | 'DECORMATE'
+  | 'TEBYAR'
   | 'SLABMATE'
+  | 'FURNIMATE'
   | 'SALONMATE'
   | 'AUTOBARTER'
   | 'TANARA'
   | 'TALAYAR'
   | 'EVENTMATE'
-  | 'FURNIMATE';
+  | 'AHANYAR'
+  | 'STUDIOYAR'
+  | 'POOSHAKYAR'
+  | 'NERKHYAR';
 
 export const ALL_PRODUCT_IDS: readonly ProductId[] = [
   'DECORMATE',
+  'TEBYAR',
   'SLABMATE',
+  'FURNIMATE',
   'SALONMATE',
   'AUTOBARTER',
   'TANARA',
   'TALAYAR',
   'EVENTMATE',
-  'FURNIMATE',
+  'AHANYAR',
+  'STUDIOYAR',
+  'POOSHAKYAR',
+  'NERKHYAR',
 ] as const;
+
+export const DEFAULT_SENFYAR_BRIDGE_URL =
+  'https://ais-pre-b23rcabqpz73uya6znjyo4-453570687245.europe-west2.run.app';
+
+export const SENFYAR_GUILD_SLUGS: Record<ProductId, string> = {
+  DECORMATE: 'cabinet_decor',
+  TEBYAR: 'medical_equipment',
+  SLABMATE: 'ceramics_luxury',
+  FURNIMATE: 'furniture_bridal',
+  SALONMATE: 'beauty_salon',
+  AUTOBARTER: 'auto_barter',
+  TANARA: 'dental_aesthetic',
+  TALAYAR: 'gold_jewelry',
+  EVENTMATE: 'wedding_venue',
+  AHANYAR: 'iron_sanitary_electro',
+  STUDIOYAR: 'studio_acoustic',
+  POOSHAKYAR: 'apparel_fashion',
+  NERKHYAR: 'live_fx_it_visa',
+};
+
+export function resolveGuildProductIdFromQuery(raw: string | null | undefined): ProductId | null {
+  if (!raw) return null;
+  const cleaned = raw.trim();
+  const upper = cleaned.toUpperCase() as ProductId;
+  if ((ALL_PRODUCT_IDS as readonly string[]).includes(upper)) {
+    return upper;
+  }
+  const lower = cleaned.toLowerCase();
+  for (const [pid, slug] of Object.entries(SENFYAR_GUILD_SLUGS)) {
+    if (slug.toLowerCase() === lower) {
+      return pid as ProductId;
+    }
+  }
+  return null;
+}
 
 export type ProductCertificationStatus =
   | 'NOT_STARTED'

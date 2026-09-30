@@ -180,13 +180,13 @@ export const AuthorizationAndCommissionLab: React.FC<
             onClick={() => applyPresetProfileScenario('BRIEF_MULTI_PRODUCT_EXAMPLE')}
             className="px-3 py-2 text-xs font-semibold bg-sky-50 text-sky-900 border border-sky-200 rounded-lg hover:bg-sky-100 transition-colors whitespace-nowrap"
           >
-            مثال سند (DecorMate & SalonMate = CERTIFIED)
+            مثال سند (کابینت‌یار و زیباجو = CERTIFIED)
           </button>
           <button
             onClick={() => applyPresetProfileScenario('TIER_A_PLUS_PLUS')}
             className="px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors whitespace-nowrap"
           >
-            سفیر ارشد A++ (هر ۷ محصول CERTIFIED)
+            سفیر ارشد A++ (هر ۱۰ سامانه CERTIFIED)
           </button>
           <button
             onClick={() => applyPresetProfileScenario('REASSESSMENT_TIER_B')}
