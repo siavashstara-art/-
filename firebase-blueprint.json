@@ -139,7 +139,8 @@
             "AUTOBARTER",
             "TANARA",
             "TALAYAR",
-            "EVENTMATE"
+            "EVENTMATE",
+            "FURNIMATE"
           ]
         },
         "status": {
@@ -228,7 +229,8 @@
             "AUTOBARTER",
             "TANARA",
             "TALAYAR",
-            "EVENTMATE"
+            "EVENTMATE",
+            "FURNIMATE"
           ]
         },
         "finalTrustScore": {

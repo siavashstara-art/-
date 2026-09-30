@@ -180,7 +180,17 @@ export const AmbassadorProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.productCertifications && parsed.productCertifications.DECORMATE) {
-          return parsed as AmbassadorDomainProfile;
+          const baseCerts = createInitialProductCertifications(
+            parsed.uid || 'sandbox_visitor',
+            parsed.tenantId || 'ablecity_sandbox'
+          );
+          return {
+            ...parsed,
+            productCertifications: {
+              ...baseCerts,
+              ...parsed.productCertifications,
+            },
+          } as AmbassadorDomainProfile;
         }
       }
     } catch {

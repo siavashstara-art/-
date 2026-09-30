@@ -49,7 +49,8 @@ export type ProductId =
   | 'AUTOBARTER'
   | 'TANARA'
   | 'TALAYAR'
-  | 'EVENTMATE';
+  | 'EVENTMATE'
+  | 'FURNIMATE';
 
 export const ALL_PRODUCT_IDS: readonly ProductId[] = [
   'DECORMATE',
@@ -59,6 +60,7 @@ export const ALL_PRODUCT_IDS: readonly ProductId[] = [
   'TANARA',
   'TALAYAR',
   'EVENTMATE',
+  'FURNIMATE',
 ] as const;
 
 export type ProductCertificationStatus =

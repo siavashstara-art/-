@@ -91,9 +91,9 @@ export const GOLDEN_MARKETING_RULES = [
     desc: 'به خریدار نشان دهید که علاوه بر نرم‌افزار محاسبه و حسابداری، همین صفحه با عکس‌های مغازه/سالن، لیست قیمت، تخفیفات روزهای خاص و آدرس او به سایت دائمی مجموعه‌اش تبدیل می‌شود (بدون دردسر اینماد و بدون مالیات درگاه بانکی، با ارسال مستقیم سفارش به واتساپ و پیامک).',
   },
   {
-    step: 'قانون ۴: بستن قرارداد با فرمول «بازگشت سرمایه با اولین مشتری (1-Deal ROI)»',
-    title: 'مقایسه قیمت کل سالانه برنامه با سود تنها ۱ معامله از دست رفته!',
-    desc: 'در هر ۷ صنف، سود خالص تنها ۱ مشتری (یک سرویس کابینت، یک عروس در سالن زیبایی، یک واحد ایمپلنت یا یک معامله خودرو) بین ۱۰ تا ۵۰ میلیون تومان است. یعنی اگر این برنامه در کل سال فقط ۱ مشتری مردد را با پیش‌فاکتور طلاکوب و چک صیادی تبدیل به خریدار کند، کل هزینه برنامه ۱۰ برابر برگشته است!',
+    step: 'قانون ۴: فرمول «بازگشت سرمایه با ۱ مشتری» + پیشنهاد محترمانه شراکت ۲۰٪/۱۵٪',
+    title: 'هیچ پرزنتی بی‌ثمر نیست: حفظ کامل احترام مشتری و پیشنهاد شراکت ۱۵٪ قبل از مراجعه به همکاران!',
+    desc: 'اگر مغازه‌دار گفت «نمی‌خواهم»، با کمال ادب بگویید: «فدای سرتان که فعلاً نیاز ندارید! من ۳۵٪ پورسانت می‌گیرم؛ ۲۰٪ سهم من و ۱۵٪ (۴.۳۵ میلیون) سهم شما بابت معرفی. چون من بعد از اینجا به همکاران شما سر می‌زنم، اگر کد معرف را ثبت کنید سود خرید آن‌ها نصیب شما می‌شود، وگرنه آن‌ها سود می‌کنند و سودی نصیب شما نمی‌شود.» (هرگز از کلمات «جا می‌مانید» یا «ضرر می‌کنید» استفاده نکنید).',
   },
 ];
 
@@ -460,10 +460,15 @@ export const GUILDS_MARKETING_PLAYBOOK: Record<ProductId, GuildMarketingPlaybook
         winningAnswerFa:
           '«منوی کاغذی قیمت نهایی ۳۵۰ نفر، سهم ۶۰ به ۴۰ دو خانواده و مبلغ هر چک صیادی را در لحظه حساب نمی‌کند! وقتی عروس و داماد خودشان روی تبلت یا سایت اختصاصی عمارت شما با اسلایدر تعداد مهمان بازی می‌کنند، حس مالکیت پیدا کرده و همان شب قرارداد می‌بندند.»',
       },
+      {
+        objectionFa: '«فعلاً خودمان به نرم‌افزار جدید نیاز نداریم!» (تکنیک طلایی TVN-PARTNER)',
+        winningAnswerFa:
+          '«جناب حاج‌آقا، کاملاً به تصمیم شما احترام می‌گذارم که فعلاً خودتان نیاز ندارید؛ اما چون شما در صنف تالارداران و مجالس فرد شناخته‌شده‌ای هستید و تالارداران دیگر، سالن‌های زیبایی، گالری‌های مبل جهیزیه و طلافروشان با شما در ارتباطند، یک پیشنهاد درآمدزایی بدون یک ریال هزینه برایتان روی میز دارم: همین الان نام و آدرس تالار شما را در سیستم ثبت می‌کنم و یک کد معرف اختصاصی (TVN-PARTNER) به گوشی شما پیامک می‌کنم. هر تالار یا واحد صنفی دیگری که از طرف شما معرفی شود و قرارداد ببندد، ۱۵٪ از کل مبلغ قرارداد (حدود ۴ میلیون و ۳۵۰ هزار تومان در هر معرفی!) نقداً به شبای شما واریز می‌شود!»',
+      },
     ],
     crossSellStrategyFa:
-      'هر باغ‌تالار عروسی یک معدن طلا برای معرفی عروس‌سراها (SALONMATE)، طلافروشی‌ها (TALAYAR) و کلینیک‌های دندانپزشکی زیبایی (TANARA) با ۳۵٪ پورسانت تقاطعی است!',
-    crossSellTargets: ['SALONMATE', 'TALAYAR', 'TANARA'],
+      'هر باغ‌تالار عروسی یک معدن طلا برای معرفی گالری‌های مبل جهیزیه (FURNIMATE)، عروس‌سراها (SALONMATE)، طلافروشی‌ها (TALAYAR) و کلینیک‌های دندانپزشکی زیبایی (TANARA) با ۳۵٪ پورسانت تقاطعی است!',
+    crossSellTargets: ['FURNIMATE', 'SALONMATE', 'TALAYAR', 'TANARA'],
     roleplayQuiz: {
       questionFa: 'کدام دو قابلیت در EventMate استرس عروس و داماد و خانواده‌ها را سر میز قرارداد از بین می‌برد؟',
       optionsFa: [
@@ -478,6 +483,65 @@ export const GUILDS_MARKETING_PLAYBOOK: Record<ProductId, GuildMarketingPlaybook
     defaultShopNameFa: 'باغ‌تالار و عمارت تشریفاتی قصر سفید',
     defaultManagerNameFa: 'جناب مهندس مجیدی',
     defaultDealIrr: 240000000,
+  },
+
+  // --------------------------------------------------------------------------
+  // شغل ۸: گالری‌های مبلمان، سرویس خواب، ناهارخوری و پکیج جهیزیه عروس (FURNIMATE)
+  // --------------------------------------------------------------------------
+  FURNIMATE: {
+    productId: 'FURNIMATE',
+    guildTitleFa: '🛋️ ۸. آموزش بازاریابی گالری مبلمان، سرویس خواب و پکیج جهیزیه عروس (FurniMate VIP)',
+    shortNameFa: '۸. مبلمان و جهیزیه عروس (FurniMate)',
+    badgeFa: 'ارزش هر پکیج جهیزیه: ۱۲۰ تا ۳۵۰ میلیون تومان | کمیسیون سایت + لایسنس: ۳۰٪',
+    targetBuyersFa:
+      'مالکان نمایشگاه‌ها و گالری‌های مبل (یافت‌آباد، دلاوران، ملایر، قم، تبریز، مشهد، رشت و سراسر کشور) و تولیدکنندگان سرویس چوب و جهیزیه عروس',
+    bestVisitTimeFa:
+      'روزهای شنبه تا سه‌شنبه ساعت ۱۰:۳۰ صبح تا ۱۳:۳۰ ظهر (پنجشنبه و جمعه بازار مبل بسیار شلوغ است)',
+    hiddenPainPointFa:
+      '۹۰٪ عروس و دامادها و خریداران مبل پس از پرسیدن قیمت، به دلیل ابهام در مابه‌التفاوت متراژ پارچه (نانو/شانل ترک روی ۳۲ متر)، نوع کلاف چوب راش گرجستان، اقساط چک صیادی و نوشتن اعداد روی یک کاغذ بی‌هویت، می‌گویند «یک دور دیگر در بازار مبل بزنیم برمی‌گردیم» و در شلوغی بازار هرگز برنمی‌گردند!',
+    preEntryPreparationFa: [
+      '۱۰ ثانیه بیرون گالری مبل بایستید و نام گالری (مثلاً: گالری مبل و سرویس خواب امپراتور) و نام مالک را در تبلت وارد کنید.',
+      'دکمه «🔒 قفل و مخفی‌سازی (نمای خالص خریدار)» را بزنید تا تبلت ۱۰۰٪ به سامانه رسمی همان گالری مبل تبدیل شود.',
+      'پکیج پیش‌فرض جهیزیه (مبل ۸ نفره چستر/کلاسیک + ناهارخوری + سرویس خواب) و اسلایدر ۳۲ متر پارچه ترک را آماده نمایش کنید.',
+    ],
+    opening30SecScriptFa:
+      '«سلام و خداقوت حاج‌آقا / جناب مهندس؛ چند درصد از عروس و دامادها قیمت می‌گیرند و می‌گویند «یک دور در بازار مبل بزنیم برمی‌گردیم» و دیگر پیدایشان نمی‌شود؟ با این سامانه که با نام گالری خودتان آماده کرده‌ام، در ۱۰ ثانیه پکیج کامل جهیزیه (مبل ۸ نفره + ناهارخوری + سرویس خواب)، متراژ دقیق پارچه نانو/ترک، ۵ سال ضمانت کلاف راش و فوم سرد و جدول چک صیادی بنفش را به واتساپ و پیامک عروس و داماد شلیک می‌کنید تا از مغازه چهارم مستقیم پیش خودتان برگردند!»',
+    tabletMagicDemoFa:
+      'اسلایدر متراژ پارچه (۳۲ متر) و مابه‌التفاوت پارچه شانل ترک/نانو را روی تبلت تکان دهید و نشان دهید چطور هزینه دقیق ارتقای پارچه، تخفیف پکیج جهیزیه، گواهی ۵ سال ضمانت کلاف راش گرجستان و جدول چک صیادی در ۱ ثانیه در پیش‌فاکتور طلاکوب درج می‌شود.',
+    websiteUpsellPitchFa:
+      '«علاوه بر صدور پیش‌فاکتور جهیزیه روی تبلت، همین صفحه با عکس مدل‌های مبل، رنگ‌بندی پارچه و شرایط اقساط چک صیادی به سایت دائمی گالری مبل شما در گوگل و اینستاگرام تبدیل می‌شود (بدون دردسر اینماد و بدون مالیات درگاه بانکی).»',
+    roiClosingFormulaFa:
+      '«ارزش هر پکیج جهیزیه عروس بین ۱۲۰ تا ۳۵۰ میلیون تومان است؛ مبلیار تنها با برگرداندن ۱ عروس و داماد مردد در کل سال، بیش از ۱۰ برابر کل هزینه‌اش را به صندوق گالری شما برمی‌گرداند!»',
+    objections: [
+      {
+        objectionFa: '«مشتری‌های بازار مبل تا ۱۰ تا مغازه را نبینند خرید نمی‌کنند؛ این برنامه چطور باعث می‌شود برگردند؟»',
+        winningAnswerFa:
+          '«وقتی ۹ گالری دیگر قیمت را روی کاغذ پاره می‌نویسند، اما شما در ۱۰ ثانیه پیش‌فاکتور طلاکوب با نام گالری خودتان، جزئیات کلاف راش گرجستان، متراژ پارچه ترک، گواهی ۵ سال ضمانت فوم سرد و جدول چک صیادی را به گوشی عروس و داماد می‌فرستید، بعد از گشتن بازار فقط به گالری معتبر شما برمی‌گردند!»',
+      },
+      {
+        objectionFa: '«فعلاً خودمان نیاز نداریم!» (تبدیل به سفیر معرف ۱۵٪ با کد TVN-PARTNER)',
+        winningAnswerFa:
+          '«جناب حاج‌آقا، کاملاً به تصمیم شما احترام می‌گذارم که فعلاً خودتان نیاز ندارید؛ اما چون شما در بازار مبل و جهیزیه فرد شناخته‌شده‌ای هستید و گالری‌های مبل دیگر، کابینت‌سازان، تالارداران و سالن‌های زیبایی با شما در ارتباطند، همین الان نام و آدرس گالری شما را در سیستم ثبت می‌کنم و یک کد معرف اختصاصی (TVN-PARTNER) به گوشی شما پیامک می‌کنم. هر گالری مبل یا واحد صنفی دیگری که از طرف شما معرفی شود و قرارداد ببندد، ۱۵٪ از کل مبلغ قرارداد (حدود ۴ میلیون و ۳۵۰ هزار تومان در هر معرفی!) نقداً به شبای شما واریز می‌شود!»',
+      },
+    ],
+    crossSellStrategyFa:
+      'گالری‌های مبل و جهیزیه عروس بهترین پل مستقیم برای معرفی کابینت‌سازان و دکوراسیون (DECORMATE)، باغ‌تالارهای عروسی (EVENTMATE) و شوروم‌های سرامیک و اسلب (SLABMATE) با ۳۵٪ پورسانت تقاطعی هستند!',
+    crossSellTargets: ['DECORMATE', 'EVENTMATE', 'SLABMATE'],
+    roleplayQuiz: {
+      questionFa:
+        'صاحب گالری مبل می‌گوید: «مشتری‌های بازار مبل تا ۱۰ تا مغازه را نبینند خرید نمی‌کنند؛ این برنامه چطور باعث می‌شود به مغازه من برگردند؟» حرفه‌ای‌ترین پاسخ چیست؟',
+      optionsFa: [
+        '«وقتی ۹ گالری دیگر قیمت را روی کاغذ پاره می‌نویسند، اما شما در ۱۰ ثانیه پیش‌فاکتور طلاکوب با نام گالری خودتان، جزئیات کلاف راش گرجستان، متراژ ۳۲ متر پارچه ترک، گواهی ۵ سال ضمانت فوم سرد و جدول چک صیادی را به گوشی عروس و داماد می‌فرستید، بعد از گشتن بازار فقط به گالری معتبر شما برمی‌گردند!»',
+        '«به مشتری بگویید اگر بیرون برود قیمت را گران‌تر می‌کنید.»',
+        '«قیمت مبل را زیر قیمت تولید به مشتری بدهید.»',
+      ],
+      correctIndex: 0,
+      explanationFa:
+        'ارسال پیش‌فاکتور رسمی طلاکوب با جزئیات متراژ پارچه ترک، ضمانت ۵ ساله کلاف راش گرجستان و جدول چک صیادی بنفش، نام گالری را در گوشی عروس و داماد ماندگار می‌کند.',
+    },
+    defaultShopNameFa: 'گالری بزرگ مبل و جهیزیه امپراتور',
+    defaultManagerNameFa: 'حاج‌آقا رحیمی',
+    defaultDealIrr: 290000000,
   },
 };
 
@@ -528,6 +592,11 @@ export const TavanaGuildPlaybook: React.FC<TavanaGuildPlaybookProps> = ({
   const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
   const [quizSubmitted, setQuizSubmitted] = useState<boolean>(false);
   const [copiedScript, setCopiedScript] = useState<boolean>(false);
+
+  // TVN-PARTNER 15% Referral Code Generator State (for "فعلاً نیاز ندارم" clients)
+  const [partnerAddress, setPartnerAddress] = useState<string>('تهران، بازار مبل یافت‌آباد، پلاک ۱۲۴');
+  const [generatedPartnerCode, setGeneratedPartnerCode] = useState<string | null>(null);
+  const [copiedPartnerSms, setCopiedPartnerSms] = useState<boolean>(false);
 
   const handleCopyScript = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -676,6 +745,24 @@ export const TavanaGuildPlaybook: React.FC<TavanaGuildPlaybookProps> = ({
           magicTag: 'مهر رسمی قفل ضدتورم قیمت منو از روز عقد قرارداد تا شب مراسم ثبت شد',
         };
       }
+      case 'FURNIMATE': {
+        const fabricMeters = demoQty + 20; // 32m when demoQty=12
+        const baseDowryPackageMillion = 165; // 8-seater sofa + dining + bed
+        const fabricUpgradeDiffMillion = Math.round(
+          fabricMeters * (demoMaterialDeductPct / 20) * 0.65 * 10
+        ) / 10;
+        const totalDowryMillion =
+          Math.round((baseDowryPackageMillion + fabricUpgradeDiffMillion) * 10) / 10;
+        const downPaymentMillion = Math.round(totalDowryMillion * 0.3 * 10) / 10;
+        const perCheckMillion =
+          Math.round(((totalDowryMillion - downPaymentMillion) / demoInstallmentMonths) * 10) / 10;
+        return {
+          unitLabel: `پکیج کامل جهیزیه عروس (مبل ۸ نفره + ناهارخوری ۸ نفره + سرویس خواب) | متراژ پارچه مصرفی: ${fabricMeters} متر`,
+          secondaryLabel: `مابه‌التفاوت ارتقای پارچه شانل ترک / نانو ضدلک: +${fabricUpgradeDiffMillion} میلیون تومان | پیش‌پرداخت: ${downPaymentMillion} م`,
+          headlineResult: `جمع کل پکیج جهیزیه: ${totalDowryMillion} میلیون تومان | هر فقره چک صیادی بنفش (${demoInstallmentMonths} ماهه): ${perCheckMillion} میلیون تومان`,
+          magicTag: 'گواهی رسمی ۵ سال ضمانت کلاف چوب راش گرجستان و فوم سرد شرکتی + قفل ضدتورم ثبت شد',
+        };
+      }
     }
   };
 
@@ -754,7 +841,8 @@ export const TavanaGuildPlaybook: React.FC<TavanaGuildPlaybookProps> = ({
 
               {(activeGuildId === 'SALONMATE' ||
                 activeGuildId === 'SLABMATE' ||
-                activeGuildId === 'EVENTMATE') && (
+                activeGuildId === 'EVENTMATE' ||
+                activeGuildId === 'FURNIMATE') && (
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs text-slate-300">
                     <span>
@@ -762,10 +850,14 @@ export const TavanaGuildPlaybook: React.FC<TavanaGuildPlaybookProps> = ({
                         ? 'کسر هزینه مواد مصرفی به نفع سالن:'
                         : activeGuildId === 'EVENTMATE'
                         ? 'اسلایدر تسهیم هزینه دو خانواده (سهم خانواده عروس):'
+                        : activeGuildId === 'FURNIMATE'
+                        ? 'ضریب ارتقای گرید پارچه (شانل ترک / نانو ضدلک روی ۳۲ متر):'
                         : 'سهم مشارکت مالک در برابر سازنده:'}
                     </span>
                     <span className="font-mono-tabular font-bold text-emerald-400">
-                      {demoMaterialDeductPct}٪ به {100 - demoMaterialDeductPct}٪
+                      {activeGuildId === 'FURNIMATE'
+                        ? `+${demoMaterialDeductPct}٪ گرید ممتاز ترک`
+                        : `${demoMaterialDeductPct}٪ به ${100 - demoMaterialDeductPct}٪`}
                     </span>
                   </div>
                   <input
@@ -832,10 +924,10 @@ export const TavanaGuildPlaybook: React.FC<TavanaGuildPlaybookProps> = ({
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-5">
               <div>
                 <p className="text-xs font-bold text-sky-700 mb-1">
-                  پلی‌بوک جامع بازاریابی میدانی شهر نوآوران توانا (Tavana 7-Guild Field Sales Playbook)
+                  پلی‌بوک جامع بازاریابی میدانی شهر نوآوران توانا (Tavana 8-Guild Field Sales Playbook)
                 </p>
                 <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
-                  ۴ قانون طلایی مشترک قبل از ورود به هر یک از ۷ صنف پولساز بازار ایران
+                  ۴ قانون طلایی مشترک قبل از ورود به هر یک از ۸ صنف پولساز بازار ایران
                 </h2>
               </div>
               <span className="text-xs font-mono-tabular text-emerald-700 font-semibold">
@@ -1158,6 +1250,158 @@ export const TavanaGuildPlaybook: React.FC<TavanaGuildPlaybookProps> = ({
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Row 3.5: Interactive TVN-PARTNER 15% from 35% Reverse Psychology Referral Generator */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-l from-amber-50/90 via-white to-emerald-50/80 border-2 border-amber-300 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <span className="text-xs font-extrabold text-amber-800 block">
+                    ★ روانشناسی معکوس و قانون «صفر شدن پرزنت بی‌ثمر»: تسهیم ۱۵٪ از ۳۵٪ پورسانت با کد معرف (TVN-PARTNER)
+                  </span>
+                  <h4 className="text-sm sm:text-base font-extrabold text-slate-900">
+                    وقتی {customManagerName} می‌گوید «فعلاً خودم نیاز ندارم»، با بخشیدن ۱۵٪ از ۳۵٪ پورسانت خودتان، او را به سفیر معرف تبدیل کنید و ۲۰٪ خالص بدون دوندگی بگیرید!
+                  </h4>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-mono-tabular font-extrabold">
+                    سهم معرف: ۱۵٪ (۴,۳۵۰,۰۰۰ ت)
+                  </span>
+                  <span className="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-mono-tabular font-extrabold">
+                    سهم خالص ویزیتور: ۲۰٪ (۵,۸۰۰,۰۰۰ ت)
+                  </span>
+                </div>
+              </div>
+
+              {/* 3-Step Respectful Psychological Induction Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1.5">
+                  <span className="font-extrabold text-sky-800 block">
+                    گام ۱: احترام کامل و «فدای سرتان که نمی‌خواهید!»
+                  </span>
+                  <p className="text-slate-600 leading-relaxed">
+                    بدون کوچک‌ترین اصرار یا دلخوری، با لبخند و ادب بگویید: <strong className="text-slate-900">«فدای سرتان حاج‌آقا که فعلاً خودتان نیاز ندارید! می‌خواهم یک پیشنهاد شراکت محترمانه به شما بدهم.»</strong>
+                  </p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-white border border-amber-300 space-y-1.5">
+                  <span className="font-extrabold text-amber-900 block">
+                    گام ۲: فرمول شراکت (من ۳۵٪ می‌گیرم: ۲۰٪ من + ۱۵٪ شما)
+                  </span>
+                  <p className="text-slate-600 leading-relaxed">
+                    شفاف بگویید: <strong className="text-amber-800">«من ۳۵٪ پورسانت می‌گیرم؛ ۲۰٪ خودم برمی‌دارم و ۱۵٪ ({Math.round((currentPlaybook.defaultDealIrr * 0.15) / 10).toLocaleString('fa-IR')} تومان) بدون اینکه هیچ کاری انجام دهید تقدیم شما می‌شود، فقط کافی است متوجه شویم خریدار از طرف شما بوده!»</strong>
+                  </p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-emerald-950 text-white space-y-1.5 border border-emerald-500/50">
+                  <span className="font-extrabold text-amber-300 block">
+                    گام ۳: یادآوری محترمانه سود (بدون کلمات منفی!)
+                  </span>
+                  <p className="text-emerald-100 leading-relaxed">
+                    محترمانه بگویید: <strong className="text-white">«من بعد از این به همکاران شما سر می‌زنم؛ اگر کد معرف را بپذیرید از خرید آن‌ها ۱۵٪ سود نصیب شما می‌شود، وگرنه اگر آن‌ها بپذیرند، آن‌ها سود می‌کنند و سودی نصیب شما نمی‌شود!»</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-100/80 border border-amber-300 text-xs text-amber-950 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                <span>
+                  <strong>خط قرمز ادب و احترام بازاری:</strong> هرگز در صحبت با صاحب مغازه یا تالار از کلمات منفی مثل <em>«شما جا می‌مانید»</em> یا <em>«شما ضرر می‌کنید»</em> استفاده نکنید چون بی‌احترامی محسوب می‌شود؛ همیشه روی <strong>«نصیب شدن سود ۱۵ درصدی به ایشان»</strong> تمرکز کنید.
+                </span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white border-2 border-amber-400 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-emerald-900">
+                    ✨ دیالوگ محترمانه، مودبانه و اثرگذار شراکت (استاندارد ویزیتور فروشیار):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const politeScript = `فدای سرتان ${customManagerName} که فعلاً خودتان نیاز ندارید! من می‌خواهم یک پیشنهاد شراکت به شما بدهم: من از شرکت ۳۵ درصد پورسانت می‌گیرم؛ ۲۰ درصد من برمی‌دارم و ۱۵ درصد شما! اگر این برنامه را معرفی کنید و کسانی که از طرف شما این مجموعه را خریداری بکنند متوجه بشویم که از طرف شما بودند، شما ۱۵ درصد از حق فروش این برنامه (حدود ۴ میلیون و ۳۵۰ هزار تومان در هر معرفی) را بدون اینکه هیچ کاری انجام بدهید به دست خواهید آورد. و البته چون من بعد از این به همکاران محترم شما در این منطقه هم سر می‌زنم، حیفم آمد اول به شما نگویم؛ چون اگر کد معرف شما ثبت شود با خرید آن‌ها سودی نصیب شما می‌شود، اما اگر نپذیرید و آن‌ها بپذیرند، آن‌ها سود می‌کنند و سودی نصیب شما نمی‌شود.`;
+                      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                        navigator.clipboard.writeText(politeScript);
+                        setCopiedPartnerSms(true);
+                        setTimeout(() => setCopiedPartnerSms(false), 2000);
+                      }
+                    }}
+                    className="px-3 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-bold cursor-pointer"
+                  >
+                    کپی دیالوگ محترمانه شراکت
+                  </button>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-900 leading-relaxed font-bold">
+                  «فدای سرتان ({customManagerName}) که فعلاً خودتان نیاز ندارید! من می‌خواهم یک پیشنهاد شراکت به شما بدهم: من ۳۵ درصد پورسانت می‌گیرم؛ ۲۰ درصد من برمی‌دارم و ۱۵ درصد شما! اگر بتوانید این برنامه را معرفی کنید و کسانی که از طرف شما این مجموعه را خریداری بکنند متوجه بشویم که از طرف شما بودند، شما <strong>۱۵ درصد از حق فروش این برنامه (حدود ۴ میلیون و ۳۵۰ هزار تومان در هر معرفی!)</strong> را بدون اینکه هیچ کاری انجام بدهید به دست خواهید آورد. و البته <strong>من بعد از این به همکاران شما هم سر می‌زنم؛ اگر کد معرف را بپذیرید از خرید آن‌ها سود می‌کنید، و اگر نپذیرید و آن‌ها بپذیرند، آن‌ها سود می‌کنند و سودی نصیب شما نمی‌شود!</strong>»
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div className="md:col-span-5">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    آدرس دقیق مجموعه برای ثبت در شبکه معرفین توانا:
+                  </label>
+                  <input
+                    type="text"
+                    value={partnerAddress}
+                    onChange={(e) => setPartnerAddress(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="md:col-span-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const code = `TVN-PARTNER-${activeGuildId.slice(0, 4)}-${Math.floor(
+                        100 + Math.random() * 899
+                      )}`;
+                      setGeneratedPartnerCode(code);
+                      setCopiedPartnerSms(false);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    ثبت آنی مشخصات و صدور کد معرف TVN-PARTNER
+                  </button>
+                </div>
+                <div className="md:col-span-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      speakText(
+                        `فدای سرتان ${customManagerName} که فعلاً خودتان نیاز ندارید! من می‌خواهم پیشنهاد شراکت بدهم: من ۳۵ درصد می‌گیرم، ۲۰ درصد من برمی‌دارم و ۱۵ درصد شما! اگر کسانی که از طرف شما معرفی می‌شوند خرید کنند، شما ۱۵ درصد از حق فروش یعنی ۴ میلیون و ۳۵۰ هزار تومان را بدون هیچ کاری به دست می‌آورید. و البته من بعد از این به همکاران شما سر می‌زنم؛ اگر کد معرف را بپذیرید سود خرید آن‌ها نصیب شما می‌شود، و اگر نپذیرید آن‌ها سود می‌کنند و سودی نصیب شما نمی‌شود.`
+                      )
+                    }
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    <span>پخش صوتی دیالوگ محترمانه</span>
+                  </button>
+                </div>
+              </div>
+
+              {generatedPartnerCode && (
+                <div className="p-4 rounded-xl bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border border-amber-500/50">
+                  <div className="space-y-1 text-xs">
+                    <div className="text-amber-300 font-extrabold">
+                      ● کد معرف اختصاصی صادر شد: <span className="font-mono-tabular text-sm text-white">{generatedPartnerCode}</span>
+                    </div>
+                    <p className="text-slate-300">
+                      پیامک آماده ارسال به {customPhone}: «{customManagerName} عزیز، مجموعه «{customShopName}» ({partnerAddress}) به عنوان شریک رسمی توانا ثبت شد. کد معرف ۱۵٪ شما: {generatedPartnerCode} — واریز آنی ۴,۳۵۰,۰۰۰ تومان به شبای شما در هر معرفی موفق.»
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const smsText = `${customManagerName} عزیز، مجموعه «${customShopName}» (${partnerAddress}) به عنوان شریک رسمی توانا ثبت شد. کد معرف ۱۵٪ شما: ${generatedPartnerCode} — واریز آنی ۴,۳۵۰,۰۰۰ تومان به شبای شما در هر معرفی موفق.`;
+                      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                        navigator.clipboard.writeText(smsText);
+                        setCopiedPartnerSms(true);
+                        setTimeout(() => setCopiedPartnerSms(false), 2000);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    {copiedPartnerSms ? '✓ متن پیامک کپی شد' : 'کپی پیامک کد معرف'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Row 4: Guild-Specific Objections & Winning Answers */}

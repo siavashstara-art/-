@@ -458,10 +458,32 @@ export const AuthorizationAndCommissionLab: React.FC<
                     </div>
 
                     <div className="pt-3 border-t border-slate-800 flex items-baseline justify-between">
-                      <span className="text-xs text-slate-300">مبلغ کمیسیون قابل پرداخت:</span>
+                      <span className="text-xs text-slate-300">مبلغ کل کمیسیون قابل پرداخت:</span>
                       <span className="text-xl font-bold font-mono-tabular text-emerald-400">
                         {commissionResult.commissionAmount.toLocaleString('fa-IR')} ریال
                       </span>
+                    </div>
+
+                    {/* Reverse Psychology TVN-PARTNER Split Preview (15% Referrer + 20% Ambassador out of 35%) */}
+                    <div className="p-3 rounded-xl bg-slate-950/90 border border-amber-500/40 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between text-amber-300 font-bold">
+                        <span>تسهیم در حالت کد معرف (TVN-PARTNER — روانشناسی معکوس ۳۵٪):</span>
+                        <span className="font-mono-tabular">۱۵٪ معرف + ۲۰٪ ویزیتور</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300 font-mono-tabular">
+                        <span>
+                          سهم صاحب مغازه معرف (۱۵٪):{' '}
+                          <strong className="text-amber-300">
+                            {Math.round(dealAmountIrr * 0.15).toLocaleString('fa-IR')} ریال
+                          </strong>
+                        </span>
+                        <span>
+                          سهم خالص ویزیتور (۲۰٪):{' '}
+                          <strong className="text-emerald-400">
+                            {Math.round(dealAmountIrr * 0.2).toLocaleString('fa-IR')} ریال
+                          </strong>
+                        </span>
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -481,12 +503,30 @@ export const AuthorizationAndCommissionLab: React.FC<
                     تنظیم سیاست پاداش سطح (Configurable Tier Bonus Policy)
                   </h3>
                 </div>
-                <button
-                  onClick={() => updateCommissionPolicy(DEFAULT_COMMISSION_POLICY)}
-                  className="text-xs text-sky-700 hover:underline font-medium whitespace-nowrap"
-                >
-                  بازنشانی به پیش‌فرض قفل‌شده (۰٪)
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() =>
+                      updateCommissionPolicy({
+                        ...commissionPolicy,
+                        baseRates: {
+                          initial_license: 0.35,
+                          website_plus_license: 0.35,
+                          annual_renewal: 0.2,
+                          cross_module: 0.35,
+                        },
+                      })
+                    }
+                    className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold transition-colors whitespace-nowrap"
+                  >
+                    فعال‌سازی پورسانت برنده ۳۵٪ (۱۵٪ معرف + ۲۰٪ سفیر)
+                  </button>
+                  <button
+                    onClick={() => updateCommissionPolicy(DEFAULT_COMMISSION_POLICY)}
+                    className="text-xs text-sky-700 hover:underline font-medium whitespace-nowrap"
+                  >
+                    بازنشانی به پیش‌فرض قفل‌شده
+                  </button>
+                </div>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed">
                 طبق بند ۶ سند، هیچ پاداش سطحی (مثل +۵٪ یا +۲٪) به عنوان قانون قطعی هاردکد نشده است و به صورت پیش‌فرض ۰٪ است، اما مدیریت می‌تواند سیاست پاداش را در زمان اجرا تنظیم کند:

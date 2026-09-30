@@ -276,6 +276,8 @@ export const GuildAnimatedVideoPlayer: React.FC<GuildAnimatedVideoPlayerProps> =
         return ['سامانه مودیان', 'معافیت اصل طلا', 'اجرت و سود', 'طلای کهنه', 'چک صیادی'];
       case 'EVENTMATE':
         return ['منوساز', 'تسهیم هزینه', 'دو خانواده', 'قفل ضدتورم', 'چک صیادی'];
+      case 'FURNIMATE':
+        return ['پکیج جهیزیه', 'پارچه ترک', 'کلاف راش', 'فوم سرد', 'چک صیادی'];
     }
   };
 

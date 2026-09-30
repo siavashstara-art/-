@@ -65,7 +65,8 @@ service cloud.firestore {
         productId == 'AUTOBARTER' ||
         productId == 'TANARA' ||
         productId == 'TALAYAR' ||
-        productId == 'EVENTMATE'
+        productId == 'EVENTMATE' ||
+        productId == 'FURNIMATE'
       );
     }
 

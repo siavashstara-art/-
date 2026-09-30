@@ -415,10 +415,10 @@ async function runCompleteSecurityAndUnitTestSuite() {
   );
 
   await recordTest(
-    'Domain Core v4.0 Multi-Product Independence (7 concurrent products per ambassador)',
+    'Domain Core v4.0 Multi-Product Independence (8 concurrent products per ambassador)',
     () => {
       const certs = createInitialProductCertifications('amb_01', 'tenant_01');
-      assert.equal(Object.keys(certs).length, 7);
+      assert.equal(Object.keys(certs).length, 8);
       for (const pid of ALL_PRODUCT_IDS) {
         assert.equal(certs[pid].productId, pid);
         assert.equal(certs[pid].status, 'NOT_STARTED');
